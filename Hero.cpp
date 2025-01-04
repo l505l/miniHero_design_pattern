@@ -1,4 +1,3 @@
-
 #include"Hero.h"
 #include"HelloWorldScene.h"
 std::string msg = "has reached its maximum";
@@ -21,14 +20,14 @@ void Hero::updateAttackTarget()
 	Hero* tmpTarget = NULL;
 	float MinDistance = INT_MAX;
 	//if (getAttackTarget() != NULL)
-	//	setLatestTargetPos(getAttackTarget()->getPosition());//±£´æÉÏÒ»´ÎµÄ×ø±ê
+	//	setLatestTargetPos(getAttackTarget()->getPosition());//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½
 	std::vector<Hero* > AllHeroes = dynamic_cast<HelloWorld*>(_presentScene)->_heroes;
 	for (auto it = AllHeroes.begin(); it != AllHeroes.end(); ++it)
 	{
-		//ÕóÓª²»Í¬ Ã»ÓÐËÀÍö ÔÚ¹¥»÷·¶Î§ÄÚ ¿É¼û
+		//ï¿½ï¿½Óªï¿½ï¿½Í¬ Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¹ï¿½ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½ ï¿½É¼ï¿½
 		if (this->getCamp() != (*it)->getCamp() && !(*it)->getIsDead())
 		{
-			if ((*it)->getPosition().distance(this->getPosition()) <= MinDistance) //È¡¾àÀë×î½üµÄ
+			if ((*it)->getPosition().distance(this->getPosition()) <= MinDistance) //È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			{
 				MinDistance = (*it)->getPosition().distance(this->getPosition());
 				tmpTarget = *it;
@@ -41,38 +40,6 @@ void Hero::updateAttackTarget()
 	}
 	this->setAttackTarget(tmpTarget);
 }
-/*void Hero::onTouchEnded(Touch* touch, Event* event) {
-	HelloWorld* scene = dynamic_cast<HelloWorld*>(_presentScene);
-	if (scene != nullptr) {
-		mapPoint* landPoint = scene->myMiniHero->landOn(touch->getLocation());
-		mapPoint* startPoint = scene->myMiniHero->landOn(_dragStart);
-
-		//ÈôÔÚÄ³¸öÇøÓòÉÏÇÒ¸ÃµãÎª¿Õ
-		if (landPoint && landPoint->_phero == nullptr) {
-			if (landPoint->tag == BATTLE) {
-				_isOnTheStage = true;
-				landPoint->_phero = this;
-				setPosition(Vec2(landPoint->_x, landPoint->_y));
-			}
-			if (landPoint->tag == WAIT) {
-				_isOnTheStage = false;
-				landPoint->_phero = this;
-				setPosition(Vec2(landPoint->_x, landPoint->_y));
-				scene->myMiniHero->upGrade(this);
-			}
-			if (landPoint->tag == DELETE) {
-				removeFromParent();
-				//setPosition(Vec2(landPoint->_x, landPoint->_y));
-			}
-		}
-		//Èô²»ÔÚ£¬·µ»ØÔ­Î»ÖÃ
-		else {
-			setPosition(Vec2(startPoint->_x, startPoint->_y));
-			startPoint->_phero = this;
-		}
-	}
-};
-*/
 
 void Hero::onTouchEnded(Touch* touch, Event* event) {
 	HelloWorld* scene = dynamic_cast<HelloWorld*>(_presentScene);
@@ -82,7 +49,7 @@ void Hero::onTouchEnded(Touch* touch, Event* event) {
 		mapPoint* landPoint = scene->myMiniHero->landOn(touch->getLocation());
 		mapPoint* startPoint = scene->myMiniHero->landOn(_dragStart);
 
-		//ÈôÔÚÄ³¸öÇøÓòÉÏÇÒ¸ÃµãÎª¿Õ
+		//ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸Ãµï¿½Îªï¿½ï¿½
 		if (landPoint && landPoint->_phero == nullptr) {
 			if (landPoint->tag == BATTLE) {
 				if (!this->getIsOnTheStage()) {
@@ -115,7 +82,7 @@ void Hero::onTouchEnded(Touch* touch, Event* event) {
 				//setPosition(Vec2(landPoint->_x, landPoint->_y));
 			}
 		}
-		//Èô²»ÔÚ£¬·µ»ØÔ­Î»ÖÃ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½Ô­Î»ï¿½ï¿½
 		else {
 			setPosition(Vec2(startPoint->_x, startPoint->_y));
 			startPoint->_phero = this;
@@ -124,11 +91,11 @@ void Hero::onTouchEnded(Touch* touch, Event* event) {
 };
 bool Hero::onTouchBegan(Touch* touch, Event* event)
 {
-	//Èç¹û¿ÉÍÏ×§ÇÒÔÚ¾«ÁéÇøÓòÄÚ£¬´¦ÀíÂß¼­
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×§ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
 	if (_dragable && getBoundingBox().containsPoint(touch->getLocation())) {
-		//±£´æ¿ªÊ¼Î»ÖÃ
+		//ï¿½ï¿½ï¿½æ¿ªÊ¼Î»ï¿½ï¿½
 		setDragStart(this->getPosition());
-		// »ñÈ¡´¥ÃþµãÏà¶ÔÓÚ¾«Áé×óÏÂ½ÇµÄÆ«ÒÆÁ¿
+		// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â½Çµï¿½Æ«ï¿½ï¿½ï¿½ï¿½
 		touchOffset = touch->getLocation() - this->getPosition();
 		HelloWorld* scene = dynamic_cast<HelloWorld*>(_presentScene);
 
@@ -139,11 +106,37 @@ bool Hero::onTouchBegan(Touch* touch, Event* event)
 			}
 		}
 	}
-	// Èç¹û´¥ÃþµãÔÚ¾«ÁéÇøÓòÄÚ£¬ÔòÈÏÎª´¥ÃþÊÂ¼þ±»´¦Àí
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	return _dragable && getBoundingBox().containsPoint(touch->getLocation());
 }
 
 bool Hero::operator==(const Hero& hero1)
 {
 	return _tag == hero1._tag && _lv == hero1._lv;
+}
+
+// Bridge Pattern: çŠ¶æ€æ ç®¡ç†ç›¸å…³æ–¹æ³•å®žçŽ°
+void Hero::addStateBar(StateBar* stateBar) {
+	// Bridge Pattern: å®žçŽ°éƒ¨åˆ†ä¸ŽæŠ½è±¡éƒ¨åˆ†çš„è¿žæŽ¥ç‚¹
+	// é€šè¿‡ç»„åˆæ–¹å¼å°†å…·ä½“çš„çŠ¶æ€æ å®žçŽ°(StateBar)ä¸Žè‹±é›„ç±»(Hero)å…³è”
+	if (stateBar) {
+		// å°†çŠ¶æ€æ å¯¹è±¡å­˜å‚¨åœ¨æ˜ å°„è¡¨ä¸­ï¼Œå»ºç«‹ç±»åž‹åˆ°å®žä¾‹çš„å¯¹åº”å…³ç³»
+		_stateBars[stateBar->getType()] = stateBar;
+		
+		// å°†çŠ¶æ€æ ä½œä¸ºå­èŠ‚ç‚¹æ·»åŠ åˆ°è‹±é›„å¯¹è±¡ä¸­
+		this->addChild(stateBar);
+		
+		// Bridge Pattern: å®žçŽ°éƒ¨åˆ†çš„å…·ä½“å®šä½é€»è¾‘
+		// æ ¹æ®çŠ¶æ€æ ç±»åž‹è®¾ç½®ä¸åŒçš„æ˜¾ç¤ºä½ç½®ï¼Œå±•çŽ°äº†å®žçŽ°éƒ¨åˆ†çš„ç‹¬ç«‹å˜åŒ–
+		stateBar->setPosition(Vec2(this->getContentSize().width / 2, 
+			this->getContentSize().height + (stateBar->getType() == "energy" ? -10 : 0)));
+	}
+}
+
+// Bridge Pattern: èŽ·å–ç‰¹å®šç±»åž‹çŠ¶æ€æ çš„æŽ¥å£æ–¹æ³•
+StateBar* Hero::getStateBar(const std::string& type) {
+	// åœ¨æ˜ å°„è¡¨ä¸­æŸ¥æ‰¾å¹¶è¿”å›žå¯¹åº”ç±»åž‹çš„çŠ¶æ€æ å®žçŽ°
+	// è¿™ç§å®žçŽ°æ–¹å¼ä½¿å¾—çŠ¶æ€æ çš„è®¿é—®ä¸Žå…·ä½“å®žçŽ°è§£è€¦
+	auto it = _stateBars.find(type);
+	return it != _stateBars.end() ? it->second : nullptr;
 }

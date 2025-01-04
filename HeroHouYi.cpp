@@ -2,68 +2,66 @@
 #include "HeroHouYi.h"
 #include<string>
 #include "SimpleAudioEngine.h"
+
 HeroHouYi* HeroHouYi::create(Ecamp camp, Ref* scene)
 {
-    HeroHouYi* Daji = new (std::nothrow) HeroHouYi;
-    if (Daji && Daji->init(camp, scene))
+    HeroHouYi* houyi = new (std::nothrow) HeroHouYi;
+    if (houyi && houyi->init(camp, scene))
     {
-
-        //Daji->autorelease();
-        return Daji;
+        houyi->autorelease();
+        return houyi;
     }
-    CC_SAFE_DELETE(Daji);
+    CC_SAFE_DELETE(houyi);
     return nullptr;
 }
+
 bool HeroHouYi::init(Ecamp camp, Ref* scene)
 {
     this->addTouchListener();
     this->initWithFile("HouYiright1.png");
     myAttackSprite = Sprite::create("HouYiNormal.png");
     setPresentScene(scene);
-    //mySprite->setScale(150);
-    //float _attackTargetWidth = 30.0f; // ƒø±ÍøÌ∂»
-    //float _attackTargetHeight = 50.0f; // ƒø±Í∏ﬂ∂»
+
     float scaleFactorX = scalingWidth / this->getContentSize().width;
     float scaleFactorY = scalingHeight / this->getContentSize().height;
     this->setScaleX(scaleFactorX);
     this->setScaleY(scaleFactorY);
 
-    //this->setPosition();
     this->setDir(1);
     this->setIsDead(false);
     this->setIsHurt(false);
     this->setIsMoving(false);
+    this->setCamp(camp);
+    this->setDragable(1);
+
     this->setHpLim(shooterHpLim);
     this->setEnergyLim(energyLim);
     this->setSpd(shooterSpeed);
     this->setLv(beginLevel);
-    this->setCamp(camp);
     this->setAttackScope(shooterAttackScope);
     this->setAttackPower(shooterAttackPower);
     this->setSkillPower(shooterSkillPower);
     this->setIsOnTheStage(false);
-
     this->setTag(HOUYIHOUYI);
-
     this->setEnergyRecoverRate(shooterEnergyRecoverRate);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0, getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate(), getCamp()));
 
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
+    auto healthBar = HealthBar::create(shooterHpLim, 0, camp);
+    auto energyBar = EnergyBar::create(energyLim, shooterEnergyRecoverRate, camp);
+    
+    this->addStateBar(healthBar);
+    this->addStateBar(energyBar);
 
     displayHeroLevel(this->getLv());
-    this->setDragable(1);
+
     this->setAttackTarget(nullptr);
 
     std::function<void(float)> upDateHpAndEnergyPos = [this](float) {
-        if (getHpBar() != nullptr && getEnergyBar() != nullptr)
+        auto healthBar = dynamic_cast<StateBar*>(this->getStateBar("health"));
+        auto energyBar = dynamic_cast<StateBar*>(this->getStateBar("energy"));
+        if (healthBar != nullptr && energyBar != nullptr)
         {
-            this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-            this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
+            healthBar->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
+            energyBar->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
             label->setPosition(Vec2(Vec2(this->getContentSize().width / 2,
                 this->getContentSize().height - 10 - label->getContentSize().height)));
         }
@@ -72,25 +70,25 @@ bool HeroHouYi::init(Ecamp camp, Ref* scene)
     this->schedule(upDateHpAndEnergyPos, 0.001f, "upDateHpAndEnergyPos");
 
     this->updateAttackTarget();
-    
     upDateMoving();
-    //decideToAttack();
     return true;
 }
+
 void HeroHouYi::displayHeroLevel(int level) {
-    // ¥¥Ω®“ª∏ˆ Label ”√”⁄œ‘ æµ»º∂
+    // “ª Label  æ»º
     this->label = Label::createWithTTF("lv." + std::to_string(level), "fonts/Marker Felt.ttf", 24);
 
-    // …Ë÷√ Label µƒŒª÷√
+    //  Label Œª
     label->setPosition(Vec2(Vec2(this->getContentSize().width / 2,
         this->getContentSize().height + 30 - label->getContentSize().height)));
 
-    // …Ë÷√Œƒ±æ—’…´
+    // ƒ±…´
     label->setColor(Color3B::WHITE);
 
-    // Ω´ Label ÃÌº”µΩ≥°æ∞
+    //  Label ”µ
     this->addChild(label, 1);
 }
+
 void HeroHouYi::upDateMoving()
 {
     std::function<void(float)> upDateMove = [this](float) {
@@ -124,17 +122,18 @@ void HeroHouYi::upDateMoving()
     };
     this->schedule(upDateMove, 1.0f, "upDateMoving");
 }
+
 void HeroHouYi::initWalkingAnimation(Vec2 destination) {
-    Vector<SpriteFrame*> animFrames; // ∂Øª≠÷°ºØ∫œ
-    animFrames.pushBack(SpriteFrame::create("HouYiright1.png", Rect(0, 0, 430, 430))); // ÃÌº”÷°
-    animFrames.pushBack(SpriteFrame::create("HouYiright2.png", Rect(0, 0, 430, 430))); // ÃÌº”÷°
-    animFrames.pushBack(SpriteFrame::create("HouYiright3.png", Rect(0, 0, 430, 430))); // ÃÌº”÷°
-    animFrames.pushBack(SpriteFrame::create("HouYiright4.png", Rect(0, 0, 430, 430))); // ÃÌº”÷°
+    Vector<SpriteFrame*> animFrames; // ÷°
+    animFrames.pushBack(SpriteFrame::create("HouYiright1.png", Rect(0, 0, 430, 430))); // ÷°
+    animFrames.pushBack(SpriteFrame::create("HouYiright2.png", Rect(0, 0, 430, 430))); // ÷°
+    animFrames.pushBack(SpriteFrame::create("HouYiright3.png", Rect(0, 0, 430, 430))); // ÷°
+    animFrames.pushBack(SpriteFrame::create("HouYiright4.png", Rect(0, 0, 430, 430))); // ÷°
     auto animation = Animation::createWithSpriteFrames(animFrames, 0.225f);
     auto animate = Animate::create(animation);
     auto repeatForever = RepeatForever::create(animate);
     this->stopAllActions();
-    this->runAction(repeatForever);  // ø™ º≤•∑≈––◊ﬂ∂Øª≠
+    this->runAction(repeatForever);  //  ºﬂ∂
 
     auto Time = (this->getPosition().distance((_attackTarget)->getPosition())) / _spd;
     auto move = MoveTo::create(Time, destination);
@@ -143,8 +142,8 @@ void HeroHouYi::initWalkingAnimation(Vec2 destination) {
 }
 //void HeroHouYi::decideToAttack() {
     //std::function<void(float)> decisionCallback = [this](float) {
-    //    // ’‚¿Ô «æˆ∂® «∑Ò÷¥–– ATTACK µƒ¬ﬂº≠
-    //    // ¿˝»Á£¨ø…“‘∏˘æ›”Œœ∑µƒ◊¥Ã¨°¢æ´¡Èµƒ Ù–‘ªÚ∆‰À˚Ãıº˛¿¥æˆ∂®
+    //    // «æ«∑÷¥ ATTACK ﬂº
+    //    // Á£¨‘∏œ∑◊¥Ã¨‘ª
     //    if (this&&_attackTarget&& this->getPosition().distance((_attackTarget)->getPosition()) < attackScope)
     //    {
     //        this->unschedule("check_condition_key");
@@ -155,13 +154,14 @@ void HeroHouYi::initWalkingAnimation(Vec2 destination) {
     //};
     //this->schedule(decisionCallback, 0.001f, "check_condition_key");
 //}
+
 void HeroHouYi::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
-    animAttackFrames.pushBack(SpriteFrame::create("HouYiAttackright1.png", Rect(0, 0, 400, 400))); // ÃÌº”÷°
-    animAttackFrames.pushBack(SpriteFrame::create("HouYiAttackright2.png", Rect(0, 0, 400, 400))); // ÃÌº”÷°
-    animAttackFrames.pushBack(SpriteFrame::create("HouYiAttackright3.png", Rect(0, 0, 400, 400))); // ÃÌº”÷°
+    animAttackFrames.pushBack(SpriteFrame::create("HouYiAttackright1.png", Rect(0, 0, 400, 400))); // ÷°
+    animAttackFrames.pushBack(SpriteFrame::create("HouYiAttackright2.png", Rect(0, 0, 400, 400))); // ÷°
+    animAttackFrames.pushBack(SpriteFrame::create("HouYiAttackright3.png", Rect(0, 0, 400, 400))); // ÷°
     //animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright1.png", Rect(0, 0, 400, 400)));
-    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fŒ™√ø÷°≥÷–¯ ±º‰
+    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fŒ™√ø÷° ±
     auto animateAttack = Animate::create(animationAttack);
     auto ATTACK = Spawn::create(animateAttack, nullptr, nullptr);
 
@@ -183,6 +183,7 @@ void HeroHouYi::performAttack() {
     };
     this->schedule(stop, 0.001f, "stop");
 }
+
 CallFunc* HeroHouYi::fireArrow() {
     auto fireArrow = CallFunc::create([this]()
         {
@@ -205,8 +206,8 @@ CallFunc* HeroHouYi::fireArrow() {
             
           
 
-            auto arrowSprite = Sprite::create(path); // ¥¥Ω®º˝ ∏æ´¡È
-            arrowSprite->setPosition(this->getPosition()); // …Ë÷√º˝ ∏µƒ≥ı ºŒª÷√
+            auto arrowSprite = Sprite::create(path); //  ∏
+            arrowSprite->setPosition(this->getPosition()); //  ∏ƒ≥ ºŒª
 
             auto spriteSize = this->getContentSize();
             arrowSprite->setScale(spriteSize.width / (size * arrowSprite->getContentSize().width),
@@ -216,12 +217,12 @@ CallFunc* HeroHouYi::fireArrow() {
 
                 return nullptr;
             }
-            auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // º˝ ∏“∆∂ØµΩƒø±ÍŒª÷√
+            auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); //  ∏∆∂ƒøŒª
             auto removeArrow = CallFunc::create([arrowSprite, this, damageDelta]() {
-                //arrowSprite->removeFromParent(); // “∆∂ØÕÍ≥…∫Û“∆≥˝º˝ ∏
+                //arrowSprite->removeFromParent(); // …∫∆≥ ∏
                 if (arrowSprite && _attackTarget && arrowSprite->getBoundingBox().intersectsRect((_attackTarget->getBoundingBox()))) {
-                    arrowSprite->removeFromParent(); // “∆≥˝º˝ ∏
-                    //arrowSprite = nullptr; // «Âø’º˝ ∏“˝”√
+                    arrowSprite->removeFromParent(); // ∆≥ ∏
+                    //arrowSprite = nullptr; // ’º ∏
                     _attackTarget->getHpBar()->changeStateBy(-damageDelta);
                     if (getCamp() == BLUE)
                     {
@@ -246,7 +247,7 @@ CallFunc* HeroHouYi::fireArrow() {
             auto arrowSequence = Sequence::create(moveArrow, removeArrow, nullptr);
             if (this->isVisible())
             {
-                arrowSprite->runAction(arrowSequence); // ÷¥––º˝ ∏∂Ø◊˜
+                arrowSprite->runAction(arrowSequence); // ÷¥–º ∏
                 dynamic_cast<HelloWorld*>(this->getPresentScene())->addChild(arrowSprite);
             }
             //checkArrowCollision(arrowSprite);
@@ -254,6 +255,7 @@ CallFunc* HeroHouYi::fireArrow() {
         });
     return fireArrow;
 }
+
 void HeroHouYi::upGrade()
 {
     this->removeChild(this->getHpBar(), true);
