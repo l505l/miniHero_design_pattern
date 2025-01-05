@@ -1,36 +1,70 @@
-#pragma once
-#ifndef __dragableSprite_h_
-#define __dragableSprite_h_
+#ifndef __DRAGABLE_SPRITE_H__
+#define __DRAGABLE_SPRITE_H__
 
-#include <iostream>
-#include <string>
-#include <time.h>
-#include"cocos2d.h"
+#include "cocos2d.h"
 USING_NS_CC;
 
-class dragableSprite: public cocos2d::Sprite
-{
-	//标签，目前没有具体含义，可以继承后修改
-	CC_SYNTHESIZE(int, _tag, Tag);
-
-	//一次拖拽的起点
-	CC_SYNTHESIZE(Vec2, _dragStart,DragStart);
-	//可否拖动的标签
-	CC_SYNTHESIZE(bool,_dragable, Dragable);
-
-	CC_SYNTHESIZE(Ref*, _presentScene, PresentScene);
-
-	//放置监听器
-	void addTouchListener();
-protected:
-	//touch动作的三个回调函数，目前只用于
-	virtual bool onTouchBegan(Touch* touch, Event* event);
-	virtual void onTouchMoved(Touch* touch, Event* event);
-	virtual void onTouchEnded(Touch* touch, Event* event);
-	Vec2 touchOffset;  // 用于存储触摸点相对于精灵左下角的偏移量
+// refactoring:shared intrinsics
+class dragableSpriteTemplate : public Ref {
+private:
+    std::string _filename;
+    Texture2D* _texture;
+    Vec2 _anchorPoint;
 
 public:
-	static dragableSprite* create(const std::string& filename, int tag,Ref* presentScene);
+    static dragableSpriteTemplate* create(const std::string& filename);
+    bool init(const std::string& filename);
+    virtual ~dragableSpriteTemplate();
+
+    const std::string& getFilename() const { return _filename; }
+    Texture2D* getTexture() const { return _texture; }
+    const Vec2& getAnchorPoint() const { return _anchorPoint; }
 };
 
-#endif // !Actor_h
+// refactoring:create a factory to manage cache
+class dragableSpriteFactory {
+private:
+    std::unordered_map<std::string, dragableSpriteTemplate*> _templateCache;
+    static dragableSpriteFactory* _instance;
+    dragableSpriteFactory() {}
+
+public:
+    static dragableSpriteFactory* getInstance();
+    dragableSpriteTemplate* getSpriteTemplate(const std::string& filename);
+    void purgeFactory();
+    ~dragableSpriteFactory();
+};
+
+// dragableSprite
+class dragableSprite : public Sprite {
+private:
+   
+    dragableSpriteTemplate* _template;
+
+    
+    bool onTouchBegan(Touch* touch, Event* event);
+    void onTouchMoved(Touch* touch, Event* event);
+    void onTouchEnded(Touch* touch, Event* event);
+
+public:
+    bool _dragable;
+    Vec2 _dragStart;
+    Vec2 _touchOffset;
+    void addTouchListener();
+    Ref* _presentScene;
+    dragableSprite();
+    virtual ~dragableSprite();
+
+    static dragableSprite* create(const std::string& filename, int tag, Ref* presentScene);
+    // refactoring:initialize from shared intrinsics
+    bool initWithTemplate(dragableSpriteTemplate* templ, int tag, Ref* presentScene);
+
+    // Getters and setters
+    void setDragable(bool dragable) { _dragable = dragable; }
+    bool isDragable() const { return _dragable; }
+    void setDragStart(const Vec2& pos) { _dragStart = pos; }
+    const Vec2& getDragStart() const { return _dragStart; }
+    void setPresentScene(Ref* scene) { _presentScene = scene; }
+};
+
+#endif
