@@ -1,56 +1,25 @@
-//#ifndef __HEROHouYi_H__
-//#define __HEROHouYi_H__
-//
-//#include"Hero.h"
-//#include"HelloWorldScene.h"
-//#include"dragableSprite.h"
-//
-//class Equipment;
-//class ExpComponent;
-//class StateComponent;
-//class Record;
-//
-//USING_NS_CC;
-//
-//class HeroHouYi :public Hero
-//{
-//	Label* label;
-//public:
-//	static HeroHouYi* create(Ecamp camp, Ref* scene);//����Ӣ��;
-//	bool init(Ecamp camp, Ref* scene);
-//	void initWalkingAnimation(Vec2 destination);
-//	void decideToAttack();
-//	void performAttack();
-//	CallFunc* fireArrow();
-//	void releaseSkill();
-//	void upDateMoving();
-//	void upGrade();
-//	void displayHeroLevel(int level);
-//};
-//
-//
-//#endif
-//
+/*Refactored by Prototype Pattern and Bridge Pattern*/
 #ifndef __HEROHouYi_H__
 #define __HEROHouYi_H__
 
-#include"Hero.h"
-#include"HelloWorldScene.h"
-//#include"dragableSprite.h"
+#include "Hero.h"
+#include "HelloWorldScene.h"
 
-class Equipment;
-class ExpComponent;
-class StateComponent;
-class Record;
-
-USING_NS_CC;
-
-class HeroHouYi :public Hero
-{
-	//Label* label;
+// Bridge Pattern: Concrete Hero Class
+// HeroHouYi inherits from Hero class as concrete implementation of abstraction
+// Gains bridging capability with status bars (implementation part) through inheritance
+class HeroHouYi : public Hero {
 public:
-	static HeroHouYi* create(Ecamp camp, Ref* scene);//����Ӣ��;
+	// Bridge Pattern: Factory Method
+	// Initializes related status bar implementations when creating hero instance
+	static HeroHouYi* create(Ecamp camp, Ref* scene);
+	
+	// Bridge Pattern: Initialization Method
+	// Establishes association with concrete status bar implementations here
 	bool init(Ecamp camp, Ref* scene);
+
+	// Hero-specific behavior methods
+	// These methods may use bridged status bar implementations
 	void initWalkingAnimation(Vec2 destination);
 	void decideToAttack();
 	void performAttack();
@@ -59,9 +28,8 @@ public:
 	void upDateMoving();
 	void upGrade();
 	void displayHeroLevel(int level);
-	// 具体英雄类完整实现clone方法
+	// Concrete hero class fully implements clone method
 	virtual Hero* clone() const override;
 };
-
 
 #endif

@@ -2,8 +2,9 @@
 #ifndef __HERO_H__
 #define __HERO_H__
 
-#include "dragableSprite.h"
-#include "HP.h"
+#include"dragableSprite.h"
+#include"HP.h"
+#include"StateBar.h"
 USING_NS_CC;
 
 // The Hero class serves as the prototype interface
@@ -35,10 +36,38 @@ protected:
 	//CC_SYNTHESIZE(Vec2, _latestTargetPos, LatestTargetPos);
 	//Sprite* mySprite;
 	Sprite* myAttackSprite;
+
+	// Bridge Pattern（桥接模式）实现：
+	// 1. 核心思想：将英雄类(Hero)与状态栏类(StateBar)分离，使它们都可以独立地变化
+	//
+	// 2. 数据结构说明：
+	//    - 使用 std::map 存储状态栏对象
+	//    - key: string类型，表示状态栏的类型标识（如"hp"、"energy"等）
+	//    - value: StateBar指针，指向具体的状态栏对象
+	//
+	// 3. 设计优势：
+	//    - 解耦：Hero类不需要知道具体的StateBar实现细节
+	//    - 扩展性：可以轻松添加新的状态栏类型而无需修改Hero类
+	//    - 动态性：可以在运行时动态地添加、删除或修改状态栏
+	//    - 维护性：状态栏的变化不会影响Hero类的核心逻辑
+	//
+	// 4. 使用场景：
+	//    - 可以用于显示不同类型的状态效果（如生命值、能量、buff等）
+	//    - 支持在游戏运行时动态更新和管理这些状态显示
+	//
+	// 5. 相关方法：
+	//    - addStateBar(): 添加新的状态栏
+	//    - getStateBar(): 获取指定类型的状态栏
+	std::map<std::string, StateBar*> _stateBars;
+
 public:
 
 	// clone作为纯虚函数，由具体英雄类完成完整的克隆实现
     virtual Hero* clone() const = 0;
+
+//Bridge Pattern: 将状态栏添加到英雄对象中
+	void addStateBar(StateBar* stateBar);
+	StateBar* getStateBar(const std::string& type);
 
 	virtual bool onTouchBegan(Touch* touch, Event* event);
 

@@ -1,20 +1,32 @@
+/*Refactored by Prototype Pattern and Bridge Pattern*/
 #include"Hero.h"
 #include "HeroYase.h"
 #include<string>
 #include"const.h"
 #include "SimpleAudioEngine.h"
+
+// Bridge Pattern: HeroYase class as concrete implementation of abstract part
+// Uses StateBar (implementation part) through composition to manage hero status
+class HeroYase : public Hero {
+public:
+    static HeroYase* create(Ecamp camp, Ref* scene);
+    virtual bool init(Ecamp camp, Ref* scene) override;
+    // ... other method declarations ...
+};
+
+// Bridge Pattern: Factory method to create concrete hero instance
 HeroYase* HeroYase::create(Ecamp camp, Ref* scene)
 {
-    HeroYase* Daji = new (std::nothrow) HeroYase;
-    if (Daji && Daji->init(camp, scene))
+    HeroYase* yase = new (std::nothrow) HeroYase;
+    if (yase && yase->init(camp, scene))
     {
-
-        Daji->autorelease();
-        return Daji;
+        yase->autorelease();
+        return yase;
     }
-    CC_SAFE_DELETE(Daji);
+    CC_SAFE_DELETE(yase);
     return nullptr;
 }
+
 bool HeroYase::init(Ecamp camp, Ref* scene)
 {
     this->addTouchListener();
@@ -22,8 +34,8 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     //myAttackSprite = Sprite::create("MinatoStand.png");
     setPresentScene(scene);
     //mySprite->setScale(150);
-    //float _attackTargetWidth = 150.0f; // Ŀ�����
-    //float _attackTargetHeight = 0.0f; // Ŀ��߶�
+    //float _attackTargetWidth = 150.0f; // Target width
+    //float _attackTargetHeight = 0.0f; // Target height
     float scaleFactorX = 120 / this->getContentSize().width;// scalingWidth
     float scaleFactorY = 120 / this->getContentSize().height;// scalingHeight
     this->setScaleX(scaleFactorX);
@@ -44,9 +56,16 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     this->setIsOnTheStage(false);
     this->setCamp(camp);
     this->setEnergyRecoverRate(warriorEnergyRecoverRate);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0,getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate(),getCamp()));
+
+    // Bridge Pattern: Create concrete state bar implementation
+    // Create status bars with specific initial properties for warrior type hero
+    auto healthBar = HealthBar::create(shooterHpLim, 0, camp);
+    auto energyBar = EnergyBar::create(energyLim, shooterEnergyRecoverRate, camp);
     
+    // Bridge Pattern: Add status bars through bridge pattern interface
+    this->addStateBar(healthBar);
+    this->addStateBar(energyBar);
+
     this->setTag(YASEYASE);
     this->setAttackTarget(nullptr);
     //this->setLatestTargetPos(Vec2(0, 0));
@@ -58,26 +77,18 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     upDateMoving();
     SkillLogic(); 
    
-    //decideToAttack();
-    //Ѫ��������
-    
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-    this->getHpBar()->setScale(0.7, 1);
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
-    this->getEnergyBar()->setScale(0.7, 1);
-
-
-
+    // Bridge Pattern: Status bar position update callback
     std::function<void(float)> upDateHpAndEnergyPos = [this](float) {
-        if (getHpBar() != nullptr && getEnergyBar() != nullptr)
-        {
-            this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-            this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
-            label->setPosition( Vec2(this->getContentSize().width / 2,
-                this->getContentSize().height - 10 - label->getContentSize().height));
+        // Bridge Pattern: Get concrete status bars through unified interface
+        if (auto healthBar = this->getStateBar("health")) {
+            if (auto energyBar = this->getStateBar("energy")) {
+                healthBar->setPosition(Vec2(this->getContentSize().width / 2, 
+                    this->getContentSize().height + 0));
+                energyBar->setPosition(Vec2(this->getContentSize().width / 2, 
+                    this->getContentSize().height - 10));
+                label->setPosition(Vec2(this->getContentSize().width / 2,
+                    this->getContentSize().height - 10 - label->getContentSize().height));
+            }
         }
     };
 
@@ -99,7 +110,7 @@ void HeroYase::upDateMoving()
             auto heroPosition = this->getPosition();
             auto enemyPosition = _attackTarget->getPosition();
 
-            // ���������ĽǶ�
+            // Calculate angle between positions
             float deltaX = enemyPosition.x - heroPosition.x;
             int curDir = deltaX > 0 ? 1 : -1;
 
@@ -120,45 +131,48 @@ void HeroYase::upDateMoving()
 }
 
 void HeroYase::SkillLogic() {
+    // Bridge Pattern: Use status bar interface in skill logic
     std::function<void(float)> Skill = [this](float) {
-        if (this->getEnergyBar() && ((this->getEnergyBar())->getCurrentState() ==
-            (this->getEnergyBar())->getMaxState()))
-        {
-            double dis = -1;
-            //�����߼�
-            HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
-            Hero* farestEnermy = nullptr;
-            for (auto it = Scene->_heroes.begin(); it != Scene->_heroes.end(); it++) {
+        // Bridge Pattern: Check energy status through status bar interface
+        if (auto energyBar = this->getStateBar("energy")) {
+            if (energyBar->getCurrentState() == energyBar->getMaxState())
+            {
+                double dis = -1;
+                // Logic
+                HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
+                Hero* farestEnermy = nullptr;
+                for (auto it = Scene->_heroes.begin(); it != Scene->_heroes.end(); it++) {
 
-                if ((*it)->getCamp() != _camp && (*it)->getIsOnTheStage() && getPosition().getDistance((*it)->getPosition()) > dis && !(*it)->getIsDead()) {
-                    dis = getPosition().getDistance((*it)->getPosition());
-                    farestEnermy = (*it);
+                    if ((*it)->getCamp() != _camp && (*it)->getIsOnTheStage() && getPosition().getDistance((*it)->getPosition()) > dis && !(*it)->getIsDead()) {
+                        dis = getPosition().getDistance((*it)->getPosition());
+                        farestEnermy = (*it);
+                    }
                 }
-            }
-            if (farestEnermy != nullptr && getIsOnTheStage()) {
-                Vector<SpriteFrame*> animSkillFrames;
-                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ����֡
-                animSkillFrames.pushBack(SpriteFrame::create("flash.png", Rect(0, 0, 400, 400))); // ����֡
-                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ����֡
+                if (farestEnermy != nullptr && getIsOnTheStage()) {
+                    Vector<SpriteFrame*> animSkillFrames;
+                    animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // Frame
+                    animSkillFrames.pushBack(SpriteFrame::create("flash.png", Rect(0, 0, 400, 400))); // Frame
+                    animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // Frame
 
 
-                auto animationSkill = Animation::createWithSpriteFrames(animSkillFrames, 0.15f); // 0.1fΪÿ֡����ʱ��
-                auto animateSkill = Animate::create(animationSkill);
-                auto Skill = Spawn::create(animateSkill, nullptr, nullptr);
-                this->runAction(Skill);
-                int diff = 0;
-                if (farestEnermy->getPosition().x < Director::getInstance()->getVisibleSize().width / 2) {
-                    if (getDir() != -1)
-                        Flip();
-                    diff = 50;
+                    auto animationSkill = Animation::createWithSpriteFrames(animSkillFrames, 0.15f); // 0.1f per frame
+                    auto animateSkill = Animate::create(animationSkill);
+                    auto Skill = Spawn::create(animateSkill, nullptr, nullptr);
+                    this->runAction(Skill);
+                    int diff = 0;
+                    if (farestEnermy->getPosition().x < Director::getInstance()->getVisibleSize().width / 2) {
+                        if (getDir() != -1)
+                            Flip();
+                        diff = 50;
+                    }
+                    else {
+                        if (getDir() != 1)
+                            Flip();
+                        diff = -50;
+                    }
+                    setPosition(Vec2(farestEnermy->getPosition().x + diff, farestEnermy->getPosition().y));
+                    energyBar->setCurrentState(5);
                 }
-                else {
-                    if (getDir() != 1)
-                        Flip();
-                    diff = -50;
-                }
-                setPosition(Vec2(farestEnermy->getPosition().x + diff, farestEnermy->getPosition().y));
-                this->getEnergyBar()->setCurrentState(5);
             }
         }
         if (getIsDead())
@@ -168,23 +182,23 @@ void HeroYase::SkillLogic() {
 }
 
 void HeroYase::initWalkingAnimation(Vec2 destination) {
-    Vector<SpriteFrame*> animFrames; // ����֡����
+    Vector<SpriteFrame*> animFrames; // Frames
 
-    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ����֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // Frame
+    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // Frame
 
   
     auto animation = Animation::createWithSpriteFrames(animFrames, 0.125f);
     auto animate = Animate::create(animation);
     auto repeatForever = RepeatForever::create(animate);
     this->stopAllActions();
-    this->runAction(repeatForever);  // ��ʼ�������߶���
+    this->runAction(repeatForever);  // Start animation
 
     auto Time = (this->getPosition().distance((_attackTarget)->getPosition())) / _spd;
     auto move = MoveTo::create(Time, destination);
@@ -192,25 +206,27 @@ void HeroYase::initWalkingAnimation(Vec2 destination) {
 }
 
 
-//һֱ�򣬸�stop
+// Keep attacking until stopped
 void HeroYase::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
     
-    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack1.png", Rect(0, 0, 400, 400))); // ����֡
-    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack2.png", Rect(0, 0, 400, 400))); // ����֡
+    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack1.png", Rect(0, 0, 400, 400))); // Frame
+    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack2.png", Rect(0, 0, 400, 400))); // Frame
 
-    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fΪÿ֡����ʱ��
+    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1f per frame
     auto animateAttack = Animate::create(animationAttack);
     auto ATTACK = Spawn::create(animateAttack, nullptr, nullptr);
 
-    //�չ���һ������
+    // Execute one attack
     auto attackSequence = Spawn::create(ATTACK, this->hitTarget(), nullptr);
     auto repeatAttackAndFire = RepeatForever::create(attackSequence);
     this->runAction(repeatAttackAndFire);
 
+    // Attack status check
     std::function<void(float)> stop = [this, repeatAttackAndFire](float) {
         this->updateAttackTarget();
-        if (this && _attackTarget && !(this->getPosition().distance((_attackTarget)->getPosition()) < attackScope))
+        if (this && _attackTarget && 
+            !(this->getPosition().distance((_attackTarget)->getPosition()) < attackScope))
         {
             this->unschedule("stop");
             this->stopAction(repeatAttackAndFire);
@@ -221,28 +237,25 @@ void HeroYase::performAttack() {
 }
 
 CallFunc* HeroYase::hitTarget() {
-    //�����߼�
+    // Bridge Pattern: Handle damage effects through status bar interface
     auto fireArrow = CallFunc::create([this]() {
-        auto audio = CocosDenshion::SimpleAudioEngine::getInstance();
-        audio->playEffect("Base_Attack_Minato.mp3", false);
-        audio->setEffectsVolume(1.0f);
         if (_attackTarget) {
             INT32 damageDelta = attackPower;
-            _attackTarget->getHpBar()->changeStateBy(-damageDelta);
-            if (getCamp() == BLUE)
-            {
-                int a = 0;
-            }
-            if (_attackTarget->getHpBar()->getCurrentState() <= 0)
-            {
-                _attackTarget->setIsDead(true);
-                _attackTarget->setVisible(false);
-                _attackTarget->stopAllActions();
-                //arrowSprite->stopAllActions();
-                //_attackTarget->mySprite->removeFromParent();
-                this->stopAllActions();
-                this->unschedule("arrow_collision_check");
-                upDateMoving();
+            
+            // Bridge Pattern: Update target health through status bar interface
+            if (auto targetHealth = _attackTarget->getStateBar("health")) {
+                targetHealth->changeStateBy(-damageDelta);
+                
+                // Check target status and handle death logic
+                if (targetHealth->getCurrentState() <= 0)
+                {
+                    _attackTarget->setIsDead(true);
+                    _attackTarget->setVisible(false);
+                    _attackTarget->stopAllActions();
+                    this->stopAllActions();
+                    this->unschedule("arrow_collision_check");
+                    upDateMoving();
+                }
             }
         }
     });
@@ -250,129 +263,46 @@ CallFunc* HeroYase::hitTarget() {
 }
 
 
-////�����߼�
-//CallFunc* HeroYase::hitTarget() {
-//    auto fireArrow = CallFunc::create([this]()
-//        {
-//            std::string path = "kuwu.png";
-//    INT32 size = 0;
-//    INT32 damageDelta = 0;
-//    if (this->getEnergyBar() && ((this->getEnergyBar())->getCurrentState() ==
-//        (this->getEnergyBar())->getMaxState()))
-//    {
-//        damageDelta = this->getAttackPower();
-//        //�����߼�
-//        HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
-//        Hero* farestEnermy;
-//        double dis = -1;
-//        for (auto it = Scene->_heroes.begin(); it != Scene->_heroes.end(); it++) {
-//            if ((*it)->getCamp() != _camp && getPosition().getDistance((*it)->getPosition()) > dis) {
-//                dis = getPosition().getDistance((*it)->getPosition());
-//                farestEnermy = (*it);
-//            }
-//        }
-//        setPosition(farestEnermy->getPosition());
-//
-//        path = "kuwu.png";
-//        size = 20;
-//        this->getEnergyBar()->setCurrentState(5);
-//    }
-//    else
-//    {
-//        size = 40;
-//        damageDelta = this->getAttackPower();
-//    }
-//    auto arrowSprite = Sprite::create("kuwu.png"); // ������ʸ����
-//    arrowSprite->setPosition(this->getPosition()); // ���ü�ʸ�ĳ�ʼλ��
-//
-//    auto spriteSize = this->getContentSize();
-//    arrowSprite->setScale(spriteSize.width / (size * arrowSprite->getContentSize().width),
-//        spriteSize.height / (size * arrowSprite->getContentSize().height));
-//    if (_attackTarget == nullptr)
-//    {
-//
-//        return nullptr;
-//    }
-//    auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // ��ʸ�ƶ���Ŀ��λ��
-//    auto removeArrow = CallFunc::create([arrowSprite, this, damageDelta]() {
-//        //arrowSprite->removeFromParent(); // �ƶ���ɺ��Ƴ���ʸ
-//        if (arrowSprite && _attackTarget && arrowSprite->getBoundingBox().intersectsRect((_attackTarget->getBoundingBox()))) {
-//            arrowSprite->removeFromParent(); // �Ƴ���ʸ
-//            //arrowSprite = nullptr; // ��ռ�ʸ����
-//            _attackTarget->getHpBar()->changeStateBy(-damageDelta);
-//            if (getCamp() == BLUE)
-//            {
-//                int a = 0;
-//            }
-//            if (_attackTarget->getHpBar()->getCurrentState() <= 0)
-//            {
-//                _attackTarget->setIsDead(true);
-//                _attackTarget->setVisible(false);
-//                _attackTarget->stopAllActions();
-//                //arrowSprite->stopAllActions();
-//                //_attackTarget->mySprite->removeFromParent();
-//                this->stopAllActions();
-//                this->unschedule("arrow_collision_check");
-//
-//                upDateMoving();
-//            }
-//        }
-//        else
-//            arrowSprite->removeFromParent();
-//        });
-//    auto arrowSequence = Sequence::create(moveArrow, removeArrow, nullptr);
-//    if (this->isVisible())
-//    {
-//        arrowSprite->runAction(arrowSequence); // ִ�м�ʸ����
-//        dynamic_cast<HelloWorld*>(this->getPresentScene())->addChild(arrowSprite);
-//    }
-//        });
-//    return fireArrow;
-//}
+
 void HeroYase::displayHeroLevel(int level) {
-    // ����һ�� Label ������ʾ�ȼ�
+    // Create a Label to display level
     this->label = Label::createWithTTF("lv."+std::to_string(level), "fonts/Marker Felt.ttf", 24);
 
-    // ���� Label ��λ��
+    // Set Label position
     label->setPosition(Vec2(Vec2(this->getContentSize().width / 2,
         this->getContentSize().height + 30 - label->getContentSize().height)));
 
-    // �����ı���ɫ
+    // Set text color
     label->setColor(Color3B::WHITE);
 
-    // �� Label ���ӵ�����
+    // Add Label as child
     this->addChild(label, 1);
 }
 void HeroYase::upGrade()
 {
-    this->removeChild(this->getHpBar(), true);
-    this->removeChild(this->getEnergyBar(), true);
+    // Bridge Pattern: Update status bars on level up
+    // Remove old status bar implementations
+    this->removeStateBar("health");
+    this->removeStateBar("energy");
 
+    // Update attribute values
     this->setHpLim(getHpLim() * 2);
-   
-    this->setSpd(getSpd() * 1.5f);
-    this->setLv(getLv() + 1);
+    this->setEnergyLim(getEnergyLim() / 2);
 
-    this->removeChild(label, true);
-    this->displayHeroLevel(getLv());
-
-    this->setAttackPower(getAttackPower() * 2);
-    this->setSkillPower(getSkillPower() * 2);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0,getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate() * 2,getCamp()));
-
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
+    // Bridge Pattern: Create and add new status bar implementations
+    auto newHealthBar = HealthBar::create(this->getHpLim(), 0, getCamp());
+    auto newEnergyBar = EnergyBar::create(this->getEnergyLim(), 
+        getEnergyRecoverRate() * 2, getCamp());
+    
+    this->addStateBar(newHealthBar);
+    this->addStateBar(newEnergyBar);
 }
 
 Hero* HeroYase::clone() const {
-    // 1. 创建新的妲己实例
+    // 1. Create new Yase instance
     auto newHero = new HeroYase();
 
-    // 2. 复制基本属性
+    // 2. Copy basic attributes
     newHero->setLv(this->getLv());
     newHero->setCamp(this->getCamp());
     newHero->setIsDead(this->getIsDead());
@@ -380,7 +310,7 @@ Hero* HeroYase::clone() const {
     newHero->setIsMoving(this->getIsMoving());
     newHero->setIsOnTheStage(this->getIsOnTheStage());
     
-    // 3. 复制战斗属性
+    // 3. Copy combat attributes
     newHero->setHpLim(this->getHpLim());
     newHero->setSpd(this->getSpd());
     newHero->setAttackScope(this->getAttackScope());
@@ -390,7 +320,7 @@ Hero* HeroYase::clone() const {
     newHero->setEnergyRecoverRate(this->getEnergyRecoverRate());
     newHero->setDir(this->getDir());
 
-    // 4. 复制UI标签
+    // 4. Copy UI label
     if (this->getLable()) {
         auto newLabel = Label::createWithTTF(
             this->getLable()->getString(),
@@ -402,7 +332,7 @@ Hero* HeroYase::clone() const {
         newHero->setLable(newLabel);
     }
 
-    // 5. 复制血条
+    // 5. Copy health bar
     if (this->getHpBar()) {
         auto newHpBar = HP::create();
         newHpBar->setMaxValue(this->getHpBar()->getMaxValue());
@@ -412,7 +342,7 @@ Hero* HeroYase::clone() const {
         newHero->setHpBar(newHpBar);
     }
 
-    // 6. 复制能量条
+    // 6. Copy energy bar
     if (this->getEnergyBar()) {
         auto newEnergyBar = HP::create();
         newEnergyBar->setMaxValue(this->getEnergyBar()->getMaxValue());
@@ -422,17 +352,17 @@ Hero* HeroYase::clone() const {
         newHero->setEnergyBar(newEnergyBar);
     }
 
-    // 7. 复制精灵属性
+    // 7. Copy sprite attributes
     newHero->setScale(this->getScale());
     newHero->setPosition(this->getPosition());
     newHero->setRotation(this->getRotation());
     newHero->setVisible(this->isVisible());
     newHero->setOpacity(this->getOpacity());
 
-    // 8. 复制dragableSprite相关属性
+    // 8. Copy dragableSprite attributes
     newHero->setDragable(this->isDragable());
     
-    // 注意：不复制 _attackTarget，因为这是战斗时的动态目标
+    // Note: Don't copy _attackTarget as it's a dynamic combat target
     newHero->setAttackTarget(nullptr);
 
     return newHero;

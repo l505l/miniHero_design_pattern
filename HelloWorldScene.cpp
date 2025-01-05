@@ -11,7 +11,7 @@
 #include "SimpleAudioEngine.h"
 #include <random>
 USING_NS_CC;
-// ����ȫ�ֵ�α������������ͷֲ�
+// Define a global pseudo-random number generator and distribution
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<> dis(1, 3);
@@ -29,7 +29,7 @@ bool HelloWorld::init()
 {
     //////////////////////////////
     // 1. super init first
-    if ( !Scene::init() )
+    if (!Scene::init())
     {
         return false;
     }
@@ -47,28 +47,28 @@ bool HelloWorld::init()
     sprite->setPosition(Vec2(0, 0));
     sprite->setScaleX(1 / 2.45f);
     sprite->setScaleY(1 / 1.8f);
-    
-   
+
+
 
     ////////////////////////
     countdownLabel = Label::createWithTTF("9", "fonts/arial.ttf", 32);
-    countdownLabel->setPosition(Vec2(480,580));
-    this->addChild(countdownLabel,0);
+    countdownLabel->setPosition(Vec2(480, 580));
+    this->addChild(countdownLabel, 0);
 
-    // ����ʱ��ʼֵ
+    // Initial value of the countdown
     countdownValue = 9;
 
-    // ��ʱ1���ʼ����ʱ
+    // Start the countdown after a 1-second delay
     this->scheduleOnce([this](float dt) {
-        // ÿ��1�����һ�ε���ʱ
+        // Update the countdown every second
         this->schedule([this](float dt) {
             countdownValue--;
             if (countdownValue >= 0) {
-                // ����Label��ʾ
+                // Update the label's display
                 countdownLabel->setString(StringUtils::format("%d", countdownValue));
             }
             else {
-                // ����ʱ������ȡ��schedule
+                // Cancel the schedule when the countdown ends
                 this->unschedule("countdown");
             }
             }, 1.0f, "countdown");
@@ -87,48 +87,57 @@ bool HelloWorld::init()
     myMiniHero->setDragable(0);
     myMiniHero->setPosition(Vec2(120, 120));
 
-    for (int i = 0; i < Ainum; i++)
+    // Initialize with nullptr to indicate that objects are not yet created
+    _AiMiniHero.resize(Ainum, nullptr);
+
+    // Initialize creation flags to false, indicating no objects have been created
+    _aiHeroCreated.resize(Ainum, false);
+
+    // Removed the original loop that preemptively created all AiminiHero objects
+    /*for (int i = 0; i < Ainum; i++)
     {
         AiminiHero* _aiai = AiminiHero::create("minihero.png", RED, HEALTH, dis(gen));
         this->addChild(_aiai);
         _aiai->setDragable(0);
         _aiai->setPosition(Vec2(800, 500));
         _AiMiniHero.push_back(_aiai);
-    }
-
+    }*/
+    // Refactored using Lazy Loading to create AiminiHero objects on demand
+    // 
+    // 
     // add a "close" icon to exit the progress. it's an autorelease object
     auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
+        "CloseNormal.png",
+        "CloseSelected.png",
+        CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
 
-  
-        float x = origin.x + visibleSize.width - closeItem->getContentSize().width/2;
-        float y = origin.y + closeItem->getContentSize().height/2;
-        closeItem->setPosition(Vec2(x,y));
-        for (int i = 0; i < 4; i++)
-        {
-            int _Tagofhero = dis(gen);
-            switch (_Tagofhero) {
-            case 1:
-                menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
-                 break;
-            case 2:
-                menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
-                break;
-            case 3:
-                menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
-                break;
-            }
-            menuItemImageBuy[i]->setPosition(Vec2(140, 240+75*i));
-            menuItemImageBuy[i]->setScale(0.4);
-            menuItemImageBuy[i]->setTag(100+i);
+
+    float x = origin.x + visibleSize.width - closeItem->getContentSize().width / 2;
+    float y = origin.y + closeItem->getContentSize().height / 2;
+    closeItem->setPosition(Vec2(x, y));
+    for (int i = 0; i < 4; i++)
+    {
+        int _Tagofhero = dis(gen);
+        switch (_Tagofhero) {
+        case 1:
+            menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
+            break;
+        case 2:
+            menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
+            break;
+        case 3:
+            menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
+            break;
         }
-        menuItemImageRefresh = MenuItemImage::create("Refresh.png", "Refresh1.png", "Refresh1.png", CC_CALLBACK_1(HelloWorld::Refresh, this));
-        menuItemImageRefresh->setPosition(Vec2(100, 240 + 75 * 4));
-        menuItemImageBuyExp = MenuItemImage::create("BuyExp.png", "BuyExp1.png", "BuyExp1.png", CC_CALLBACK_1(HelloWorld::buyExp, this));
-        menuItemImageBuyExp->setPosition(Vec2(100, 50));
-        menu = Menu::create(closeItem, menuItemImageBuy[0], menuItemImageBuy[1], menuItemImageBuy[2], menuItemImageBuy[3], menuItemImageRefresh, menuItemImageBuyExp,NULL);
+        menuItemImageBuy[i]->setPosition(Vec2(140, 240 + 75 * i));
+        menuItemImageBuy[i]->setScale(0.4);
+        menuItemImageBuy[i]->setTag(100 + i);
+    }
+    menuItemImageRefresh = MenuItemImage::create("Refresh.png", "Refresh1.png", "Refresh1.png", CC_CALLBACK_1(HelloWorld::Refresh, this));
+    menuItemImageRefresh->setPosition(Vec2(100, 240 + 75 * 4));
+    menuItemImageBuyExp = MenuItemImage::create("BuyExp.png", "BuyExp1.png", "BuyExp1.png", CC_CALLBACK_1(HelloWorld::buyExp, this));
+    menuItemImageBuyExp->setPosition(Vec2(100, 50));
+    menu = Menu::create(closeItem, menuItemImageBuy[0], menuItemImageBuy[1], menuItemImageBuy[2], menuItemImageBuy[3], menuItemImageRefresh, menuItemImageBuyExp, NULL);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu, 1);
     //add
@@ -147,7 +156,7 @@ bool HelloWorld::init()
     mouseListener->onMouseUp = CC_CALLBACK_1(HelloWorld::onMouseUp, this);
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(mouseListener, this);
-    //ССӢ�۵ȼ�
+    //minihero Lv
     lvLabel = Label::createWithSystemFont("lv:" + std::to_string(myMiniHero->getLv()), "Arial", 20);
     lvLabel->setPosition(Vec2(50, 100));
     addChild(lvLabel);
@@ -156,8 +165,8 @@ bool HelloWorld::init()
     disPlayMoney();
     Waiting();
 
-   
-    
+
+
 
     return true;
 }
@@ -169,19 +178,19 @@ void HelloWorld::disPlayMoney()
     this->addChild(sell);
 
     this->label = Label::createWithTTF("money:" + std::to_string(this->myMiniHero->getMoney()), "fonts/Marker Felt.ttf", 30);
-    
-    // ���� Label ��λ��
+
+    // Set the position of the label
     label->setPosition(Vec2(900, 580));
 
-    // �����ı���ɫ
+    // Set the color of the text
     label->setColor(Color3B::WHITE);
 
-    // �� Label ���ӵ�����
+    // Add the label to the scene
     this->addChild(label, 1);
     std::function<void(float)> screenMoney = [this](float) {
         this->getLable()->setString("money:" + std::to_string(this->myMiniHero->getMoney()));
 
-    };
+        };
     this->schedule(screenMoney, 0.001f, "screenMoney");
 }
 void HelloWorld::Waiting() {
@@ -224,7 +233,7 @@ void HelloWorld::buydaji(Ref* obj)
 
         item->removeFromParent();
     }
-   
+
 }
 void HelloWorld::buyyase(Ref* obj)
 {
@@ -256,7 +265,7 @@ void HelloWorld::buyyase(Ref* obj)
         valid[item->getTag() - 100] = 0;
         item->removeFromParent();
     }
-    
+
 }
 void HelloWorld::buyhouyi(Ref* obj)
 {
@@ -271,7 +280,7 @@ void HelloWorld::buyhouyi(Ref* obj)
         if (it->_phero)
             _iCount++;
     }
-    if (myMiniHero->getMoney() >= 2 && _iCount <10)
+    if (myMiniHero->getMoney() >= 2 && _iCount < 10)
     {
         auto Hero1 = HeroHouYi::create(RED, this);
         //Hero1->setScale(0.5);
@@ -288,7 +297,7 @@ void HelloWorld::buyhouyi(Ref* obj)
         valid[item->getTag() - 100] = 0;
         item->removeFromParent();
     }
-    
+
 }
 
 void HelloWorld::startGame1(float ft) {
@@ -298,27 +307,25 @@ void HelloWorld::startGame1(float ft) {
     myMiniHero->setDragable(true);
     if (_player == 1)
     {
-       /* for (int i = 0; i < 28; i++)
-        {
-            _message_[i * 2] = '1';
-            _message_[i * 2+1] = '1';
-        }*/
-        _AiMiniHero[_order]->setVisible(true);
-        _AiMiniHero[_order]->sendAIMessage();
-        for (int i = 0; i < 56; i++)
-            _message_[i] = _AiMiniHero[_order]->_heroMessage[i];
+        // Use lazy loading to retrieve the AI hero
+        AiminiHero* currentAiHero = getAiHero(_order);
+        if (currentAiHero) {
+            currentAiHero->setVisible(true);
+            currentAiHero->sendAIMessage();
+            for (int i = 0; i < 56; i++)
+                _message_[i] = currentAiHero->_heroMessage[i];
+        }
     }
     else  if (_player == 2) {
-        Command *com=new Command;
+        Command* com = new Command;
         com->sendHeroMessage(myMiniHero->generateMessage());
         com->recvHeroMessage();
         for (int i = 0; i < 56; i++)
             _message_[i] = com->HeroMessage[i];
-        ////����д���������message��ô�仯
     }
 
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame2, this), 2.0, "startGame2");
-    
+
 }
 
 void HelloWorld::startGame2(float ft) {
@@ -398,6 +405,8 @@ void HelloWorld::startGame2(float ft) {
 int HelloWorld::cheak() {
     //һû
     int win=2;
+    //My hero hasn't been completely defeated yet
+    int win = 2;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
         if ((*it)->getCamp() == RED && (*it)->getIsDead() == FALSE)
@@ -407,6 +416,7 @@ int HelloWorld::cheak() {
         }
     }
     if (win == 2)//
+    if (win == 2)//My hero has been completely defeated
         return 0;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
@@ -417,6 +427,7 @@ int HelloWorld::cheak() {
         }
     }
     if (win == 0)//
+    if (win == 0)//The opponent has been completely defeated
         return 1;
     return 2;
 }
@@ -425,13 +436,17 @@ void HelloWorld::checkWinLose(float ft) {
    
     if (c == 0) {//
         // 
+
+    if (c == 0) {//All of our heroes have been defeated 
+        // Win-loss handling logic
         myMiniHero->getHpBar()->setCurrentState(myMiniHero->getHpBar()->getCurrentState() - 4);
         myMiniHero->getHpBar()->updatePercent();
-       
+
 
 
         this->unschedule("checkWinLose");
         //Ӣۻָ״̬
+        //Hero restored to full status
         for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
         {
             if (it->_phero)
@@ -446,6 +461,7 @@ void HelloWorld::checkWinLose(float ft) {
         audio->setEffectsVolume(1.0f);
 
         //
+        //Play audio
 
 
         myMiniHero->setLv(myMiniHero->getLv() + 1);
@@ -455,7 +471,7 @@ void HelloWorld::checkWinLose(float ft) {
 
         //  this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0, "startGame");
         this->scheduleOnce([this](float dt) {
-            // ��Lambda����ʽ�д�������
+            // Create a sprite within a lambda expression
             auto sprite = Sprite::create("Defeat.jpg");
             sprite->setScaleX(1.5f);
             sprite->setScaleY(1.6f);
@@ -463,23 +479,23 @@ void HelloWorld::checkWinLose(float ft) {
             sprite->setPosition(Vec2(0, 0));
             this->addChild(sprite, 0);
 
-            // ��ʱ2���ִ��Lambda����ʽ
+            // Run the lambda expression with a 2-second delay"
             this->scheduleOnce([this, sprite](float dt) {
-                // ��Lambda����ʽ���Ƴ�����
+                // Remove the sprite within the lambda expression
                 this->removeChild(sprite);
                 }, 2.0f, "removeSprite");
             }, 1.0f, "createSprite");
         Gamewinorlose(false);
 
-        // ������Ϸ�Ѿ�����
+        // game over
 
     }
-    else if (c == 1) {//�Է�Ӣ��������
-        // ��Ӯ�����߼�
+    else if (c == 1) {//The opponent's heroes have all been defeated
+        // Win-loss handling logic
         this->unschedule("checkWinLose");
-        // ������Ϸ�Ѿ�����
+        // The round has ended
 
-        //Ӣ�ۻָ���״̬
+        //Hero restored to full status
         for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
         {
             if (it->_phero)
@@ -492,23 +508,23 @@ void HelloWorld::checkWinLose(float ft) {
         auto audio = CocosDenshion::SimpleAudioEngine::getInstance();
         audio->playEffect("endgame_win.mp3", false);
         audio->setEffectsVolume(1.0f);
-        
+
         myMiniHero->setLv(myMiniHero->getLv() + 1);
         if (myMiniHero->getMaxOnBoard() < 10)
             myMiniHero->setMaxOnBoard(myMiniHero->getMaxOnBoard() + 1);
         myMiniHero->setMoney(myMiniHero->getMoney() + 3);
 
         this->scheduleOnce([this](float dt) {
-            // ��Lambda����ʽ�д�������
+            // Create a sprite within a lambda expression
             auto sprite = Sprite::create("Victory.jpg");
             sprite->setScaleX(1.5f);
             sprite->setScaleY(1.6f);
             sprite->setAnchorPoint(Vec2(0, 0));
             sprite->setPosition(Vec2(0, 0));
             this->addChild(sprite, 0);
-            // ��ʱ2���ִ��Lambda����ʽ
+            // Run the lambda expression with a 2-second delay
             this->scheduleOnce([this, sprite](float dt) {
-                // ��Lambda����ʽ���Ƴ�����
+                // Remove the sprite within the lambda expression
                 this->removeChild(sprite);
                 }, 2.0f, "removeSprite");
             }, 1.0f, "createSprite");
@@ -516,18 +532,18 @@ void HelloWorld::checkWinLose(float ft) {
 
     }
     else {
-        // ��Ϸ��δ����ʤ��
-       // CCLOG("��Ϸ��δ����ʤ��");
+        // The game has not yet been decided
+       // CCLOG("The game has not yet been decided");
     }
 }
 
 void HelloWorld::Gamewinorlose(int c) {
- 
+
     if (_player == 1)
     {
         _AiMiniHero[_order]->setVisible(false);
         _order++;
-        if (_order >= Ainum||(myMiniHero->getHpBar()->getCurrentState() <= 0))
+        if (_order >= Ainum || (myMiniHero->getHpBar()->getCurrentState() <= 0))
         {
 
             auto scene = MusicSetting::createScene();
@@ -536,56 +552,57 @@ void HelloWorld::Gamewinorlose(int c) {
         for (int i = 0; i < Ainum; i++)
         {
             _AiMiniHero[i]->setLv(_AiMiniHero[i]->getLv() + 1);
-            if(_AiMiniHero[i]->getMaxOnBoard()<10)
+            if (_AiMiniHero[i]->getMaxOnBoard() < 10)
                 _AiMiniHero[i]->setMaxOnBoard(_AiMiniHero[i]->getMaxOnBoard() + 1);
             _AiMiniHero[i]->setMoney(_AiMiniHero[i]->getMoney() + dis(gen));
         }
-        //�ӽ�ҡ�����
+        //Add coins and level up
     }
     else if (_player == 2)
     {
-        if (_order>=Max_order||myMiniHero->getHpBar()->getCurrentState() <= 0)
+        if (_order >= Max_order || myMiniHero->getHpBar()->getCurrentState() <= 0)
         {
             auto scene = MusicSetting::createScene();
             Director::getInstance()->replaceScene(scene);
 
         }
-        //�˳����߼���
+        //exit or continue
         _order++;
     }
-    //��ʾ��Ӯ
+    //Display the result of win or loss
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::resetGame, this), 3.0f, "resetGame");
 }
 
 void HelloWorld::resetGame(float dt) {
-  
-        for (int i = 0; i < 4; i++)
-            if (valid[i] == 1)
-                menu->removeChild(menuItemImageBuy[i], 1);
-        for (int i = 0; i < 4; i++)
-        {
-            int _Tagofhero = dis(gen);
-            switch (_Tagofhero) {
-            case 1:
-                menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
-                break;
-            case 2:
-                menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
-                break;
-            case 3:
-                menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
-                break;
-            }
-            menuItemImageBuy[i]->setPosition(Vec2(140.0f, static_cast<float>(240 + 75 * i)));
-            menuItemImageBuy[i]->setScale(0.4f);
-            menuItemImageBuy[i]->setTag(100 + i);
-            menu->addChild(menuItemImageBuy[i]);
-            valid[i] = 1;
+
+    for (int i = 0; i < 4; i++)
+        if (valid[i] == 1)
+            menu->removeChild(menuItemImageBuy[i], 1);
+    for (int i = 0; i < 4; i++)
+    {
+        int _Tagofhero = dis(gen);
+        switch (_Tagofhero) {
+        case 1:
+            menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
+            break;
+        case 2:
+            menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
+            break;
+        case 3:
+            menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
+            break;
         }
-    
-    // ���֮ǰ����Ϸ����
-   // this->removeAllChildren();
-    /////�Ȱ������ϳ�Ӣ����Ϊ���ɼ�������
+        menuItemImageBuy[i]->setPosition(Vec2(140.0f, static_cast<float>(240 + 75 * i)));
+        menuItemImageBuy[i]->setScale(0.4f);
+        menuItemImageBuy[i]->setTag(100 + i);
+        menu->addChild(menuItemImageBuy[i]);
+        valid[i] = 1;
+    }
+
+    // Clear previous game content
+  // this->removeAllChildren();
+  ///// First, set all active heroes to invisible and dead
+
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
         //
@@ -593,18 +610,20 @@ void HelloWorld::resetGame(float dt) {
         (*it)->setVisible(false);
         (*it)->setIsDead(true);
     }
-    ////�ٰѵ��˵ľ����Ƴ�
-   for (auto it = _heroes.begin(); it < _heroes.end(); it++)
+ 
+    for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
-       if ((*it)->getCamp() == BLUE)
-           this->removeChild(*it);
+        if ((*it)->getCamp() == BLUE)
+            this->removeChild(*it);
     }
-   //�������Ӣ�۵�����
+    //// Then remove the enemy's sprites
+
     _heroes.clear();
-    //�����ҵ��ϳ�Ӣ�ۣ������ǻָ���λ�á�������������
+    // For my active heroes, restore their (position, death state, invisibility)
+
     for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
     {
-        //������ҵ�Ӣ��
+        //if it is my hero
         if (it->_phero != nullptr)
         {
             it->_phero->setIsDead(false);
@@ -612,29 +631,31 @@ void HelloWorld::resetGame(float dt) {
             it->_phero->setPosition(Vec2(it->_x, it->_y));
         }
     }
-        // ���³�ʼ����Ϸ
-   // reinitGame();
-   countdownValue = 9;
-   this->scheduleOnce([this](float dt) {
-       // ÿ��1�����һ�ε���ʱ
-       this->schedule([this](float dt) {
-           countdownValue--;
-           if (countdownValue >= 0) {
-               // ����Label��ʾ
-               countdownLabel->setString(StringUtils::format("%d", countdownValue));
-           }
-           else {
-               // ����ʱ������ȡ��schedule
-               this->unschedule("countdown");
-           }
-           }, 1.0f, "countdown");
-       }, 1.0f, "startCountdown");
-   myMiniHero->setDragable(false);
-   setAlldragable(true);
-   menu->setEnabled(true);
-  enableMouseEvents();
-   myMiniHero->setPosition(Vec2(120, 120));
-    // ��ʱһ��ʱ���ʼ�µ�һ��
+    // reinitGame();
+    countdownValue = 9;
+    this->scheduleOnce([this](float dt) {
+        // Update the countdown every 1 second
+        this->schedule([this](float dt) {
+            countdownValue--;
+            if (countdownValue >= 0) {
+                // Update the label display
+
+                countdownLabel->setString(StringUtils::format("%d", countdownValue));
+            }
+            else {
+                // Cancel the schedule upon countdown completion
+
+                this->unschedule("countdown");
+            }
+            }, 1.0f, "countdown");
+        }, 1.0f, "startCountdown");
+    myMiniHero->setDragable(false);
+    setAlldragable(true);
+    menu->setEnabled(true);
+    enableMouseEvents();
+    myMiniHero->setPosition(Vec2(120, 120));
+    // Start a new round after a delay
+
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0f, "restartGame");
 }
 
@@ -691,14 +712,15 @@ void HelloWorld::OnMouseMove(Event* event) {
 
 void HelloWorld::buyExp(Ref* obj)
 {
-    //ÿ��һ�λ���������ң���5�㾭��
+    // Each purchase costs 2 coins and grants 5 experience points
+
     if (myMiniHero->getMoney() >= 2) {
         myMiniHero->setMoney(myMiniHero->getMoney() - 2);
         myMiniHero->takeExp(5);
     }
     else {
     }
-    float percent = static_cast<float>(myMiniHero->getExp()) / myMiniHero->getCurExpLim()*20;
+    float percent = static_cast<float>(myMiniHero->getExp()) / myMiniHero->getCurExpLim() * 20;
     this->myMiniHero->getEnergyBar()->setCurrentState(static_cast<INT32>(percent));
     this->myMiniHero->getEnergyBar()->updatePercent();
     lvLabel->setString("lv:" + std::to_string(myMiniHero->getLv()));
@@ -707,8 +729,8 @@ void HelloWorld::Refresh(Ref* obj) {
     if (myMiniHero->getMoney() >= 1)
     {
         for (int i = 0; i < 4; i++)
-            if(valid[i]==1)
-            menu->removeChild(menuItemImageBuy[i], 1);
+            if (valid[i] == 1)
+                menu->removeChild(menuItemImageBuy[i], 1);
         for (int i = 0; i < 4; i++)
         {
             int _Tagofhero = dis(gen);
@@ -729,7 +751,36 @@ void HelloWorld::Refresh(Ref* obj) {
             menu->addChild(menuItemImageBuy[i]);
             valid[i] = 1;
         }
-   
-    myMiniHero->setMoney(myMiniHero->getMoney() - 1);
+
+        myMiniHero->setMoney(myMiniHero->getMoney() - 1);
+    }
+}
+
+// Implement lazy loading methods
+AiminiHero* HelloWorld::getAiHero(int index)
+{
+    if (index < 0 || index >= Ainum) {
+        return nullptr;
+    }
+
+    // Ensure the AiminiHero object is initialized if needed
+    initAiHeroIfNeeded(index);
+    return _AiMiniHero[index];
+}
+
+void HelloWorld::initAiHeroIfNeeded(int index)
+{
+    // Check if the AiminiHero object has not been created yet
+    if (!_aiHeroCreated[index]) {
+        // Create the AiminiHero object using lazy loading
+        AiminiHero* _aiai = AiminiHero::create("minihero.png", RED, HEALTH, dis(gen));
+        this->addChild(_aiai);
+        _aiai->setDragable(0);
+        _aiai->setPosition(Vec2(800, 500));
+        _aiai->setVisible(false); // Initially set to invisible
+
+        // Store the created object and mark it as created
+        _AiMiniHero[index] = _aiai;
+        _aiHeroCreated[index] = true;
     }
 }

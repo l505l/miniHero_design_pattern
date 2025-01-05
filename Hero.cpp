@@ -1,4 +1,3 @@
-
 #include"Hero.h"
 #include"HelloWorldScene.h"
 std::string msg = "has reached its maximum";
@@ -41,38 +40,6 @@ void Hero::updateAttackTarget()
 	}
 	this->setAttackTarget(tmpTarget);
 }
-/*void Hero::onTouchEnded(Touch* touch, Event* event) {
-	HelloWorld* scene = dynamic_cast<HelloWorld*>(_presentScene);
-	if (scene != nullptr) {
-		mapPoint* landPoint = scene->myMiniHero->landOn(touch->getLocation());
-		mapPoint* startPoint = scene->myMiniHero->landOn(_dragStart);
-
-		//����ĳ���������Ҹõ�Ϊ��
-		if (landPoint && landPoint->_phero == nullptr) {
-			if (landPoint->tag == BATTLE) {
-				_isOnTheStage = true;
-				landPoint->_phero = this;
-				setPosition(Vec2(landPoint->_x, landPoint->_y));
-			}
-			if (landPoint->tag == WAIT) {
-				_isOnTheStage = false;
-				landPoint->_phero = this;
-				setPosition(Vec2(landPoint->_x, landPoint->_y));
-				scene->myMiniHero->upGrade(this);
-			}
-			if (landPoint->tag == DELETE) {
-				removeFromParent();
-				//setPosition(Vec2(landPoint->_x, landPoint->_y));
-			}
-		}
-		//�����ڣ�����ԭλ��
-		else {
-			setPosition(Vec2(startPoint->_x, startPoint->_y));
-			startPoint->_phero = this;
-		}
-	}
-};
-*/
 
 void Hero::onTouchEnded(Touch* touch, Event* event) {
 	HelloWorld* scene = dynamic_cast<HelloWorld*>(_presentScene);
@@ -147,4 +114,30 @@ bool Hero::onTouchBegan(Touch* touch, Event* event)
 bool Hero::operator==(const Hero& hero1)
 {
 	return _tag == hero1._tag && _lv == hero1._lv;
+}
+
+// Bridge Pattern: 状态栏管理相关方法实现
+void Hero::addStateBar(StateBar* stateBar) {
+	// Bridge Pattern: 实现部分与抽象部分的连接点
+	// 通过组合方式将具体的状态栏实现(StateBar)与英雄类(Hero)关联
+	if (stateBar) {
+		// 将状态栏对象存储在映射表中，建立类型到实例的对应关系
+		_stateBars[stateBar->getType()] = stateBar;
+		
+		// 将状态栏作为子节点添加到英雄对象中
+		this->addChild(stateBar);
+		
+		// Bridge Pattern: 实现部分的具体定位逻辑
+		// 根据状态栏类型设置不同的显示位置，展现了实现部分的独立变化
+		stateBar->setPosition(Vec2(this->getContentSize().width / 2, 
+			this->getContentSize().height + (stateBar->getType() == "energy" ? -10 : 0)));
+	}
+}
+
+// Bridge Pattern: 获取特定类型状态栏的接口方法
+StateBar* Hero::getStateBar(const std::string& type) {
+	// 在映射表中查找并返回对应类型的状态栏实现
+	// 这种实现方式使得状态栏的访问与具体实现解耦
+	auto it = _stateBars.find(type);
+	return it != _stateBars.end() ? it->second : nullptr;
 }
