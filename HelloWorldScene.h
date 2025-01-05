@@ -83,7 +83,6 @@ public:
         Highlight->setVisible(false);
     }
 
-    // ��������¼�
     void enableMouseEvents() {
         if (!_eventDispatcher->isEnabled()) {
             _eventDispatcher->setEnabled(true);
@@ -96,18 +95,20 @@ public:
     }
     // /////////////////////////
     // implement the "static create()" method manually
-    CREATE_FUNC(HelloWorld);  //���κ�
+    CREATE_FUNC(HelloWorld);  
     void disPlayMoney();
 
-    // 修改为指针数组
+    // Modify to a pointer array
     std::vector<AiminiHero*> _AiMiniHero;
 
-    // 添加懒加载方法
-    AiminiHero* getAiHero(int index);
-    void initAiHeroIfNeeded(int index);
+    // Add lazy loading methods
+   // Using lazy loading refactoring method to create AiminiHero objects on demand, optimizing resource usage
+    AiminiHero* getAiHero(int index);  // Retrieves the AiminiHero object at the specified index
+    void initAiHeroIfNeeded(int index);  // Initializes the AiminiHero object at the specified index if needed
+
 
 private:
-    // 添加标记数组记录是否已创建
+    // Add a flag array to record whether it has been created
     std::vector<bool> _aiHeroCreated;
 };
 

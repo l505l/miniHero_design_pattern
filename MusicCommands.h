@@ -4,7 +4,9 @@
 #include "cocos2d.h"
 #include "SimpleAudioEngine.h"
 
-// 具体命令类
+// Concrete command class
+// These classes implement the command interface and define the binding
+// between a Receiver object and an action.
 class PlayMusicCommand : public IMusicCommand {
 private:
     std::string newMusic;
@@ -15,8 +17,8 @@ public:
     PlayMusicCommand(const std::string& music) 
         : newMusic(music)
         , audioEngine(CocosDenshion::SimpleAudioEngine::getInstance()) {
-        // 由于SimpleAudioEngine没有获取当前背景音乐的方法
-        // 我们可以在外部维护一个当前音乐的状态
+        // Since SimpleAudioEngine does not have a method to get the current background music
+        // We can maintain a current music state externally
         static std::string currentMusic;
         previousMusic = currentMusic;
         currentMusic = music;

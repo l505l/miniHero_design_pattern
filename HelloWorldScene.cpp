@@ -11,7 +11,7 @@
 #include "SimpleAudioEngine.h"
 #include <random>
 USING_NS_CC;
-// 定义全局的伪随机数生成器和分布
+// Define a global pseudo-random number generator and distribution
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<> dis(1, 3);
@@ -55,20 +55,20 @@ bool HelloWorld::init()
     countdownLabel->setPosition(Vec2(480, 580));
     this->addChild(countdownLabel, 0);
 
-    // 倒计时初始值
+    // Initial value of the countdown
     countdownValue = 9;
 
-    // 延时1秒后开始倒计时
+    // Start the countdown after a 1-second delay
     this->scheduleOnce([this](float dt) {
-        // 每隔1秒更新一次倒计时
+        // Update the countdown every second
         this->schedule([this](float dt) {
             countdownValue--;
             if (countdownValue >= 0) {
-                // 更新Label显示
+                // Update the label's display
                 countdownLabel->setString(StringUtils::format("%d", countdownValue));
             }
             else {
-                // 倒计时结束，取消schedule
+                // Cancel the schedule when the countdown ends
                 this->unschedule("countdown");
             }
             }, 1.0f, "countdown");
@@ -87,10 +87,13 @@ bool HelloWorld::init()
     myMiniHero->setDragable(0);
     myMiniHero->setPosition(Vec2(120, 120));
 
-    _AiMiniHero.resize(Ainum, nullptr);  // 初始化为空指针
-    _aiHeroCreated.resize(Ainum, false); // 初始化创建标记
+    // Initialize with nullptr to indicate that objects are not yet created
+    _AiMiniHero.resize(Ainum, nullptr);
 
-    // 删除原来的循环创建代码
+    // Initialize creation flags to false, indicating no objects have been created
+    _aiHeroCreated.resize(Ainum, false);
+
+    // Removed the original loop that preemptively created all AiminiHero objects
     /*for (int i = 0; i < Ainum; i++)
     {
         AiminiHero* _aiai = AiminiHero::create("minihero.png", RED, HEALTH, dis(gen));
@@ -99,7 +102,9 @@ bool HelloWorld::init()
         _aiai->setPosition(Vec2(800, 500));
         _AiMiniHero.push_back(_aiai);
     }*/
-
+    // Refactored using Lazy Loading to create AiminiHero objects on demand
+    // 
+    // 
     // add a "close" icon to exit the progress. it's an autorelease object
     auto closeItem = MenuItemImage::create(
         "CloseNormal.png",
@@ -151,7 +156,7 @@ bool HelloWorld::init()
     mouseListener->onMouseUp = CC_CALLBACK_1(HelloWorld::onMouseUp, this);
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(mouseListener, this);
-    //小小英雄等级
+    //minihero Lv
     lvLabel = Label::createWithSystemFont("lv:" + std::to_string(myMiniHero->getLv()), "Arial", 20);
     lvLabel->setPosition(Vec2(50, 100));
     addChild(lvLabel);
@@ -174,13 +179,13 @@ void HelloWorld::disPlayMoney()
 
     this->label = Label::createWithTTF("money:" + std::to_string(this->myMiniHero->getMoney()), "fonts/Marker Felt.ttf", 30);
 
-    // 设置 Label 的位置
+    // Set the position of the label
     label->setPosition(Vec2(900, 580));
 
-    // 设置文本颜色
+    // Set the color of the text
     label->setColor(Color3B::WHITE);
 
-    // 将 Label 添加到场景
+    // Add the label to the scene
     this->addChild(label, 1);
     std::function<void(float)> screenMoney = [this](float) {
         this->getLable()->setString("money:" + std::to_string(this->myMiniHero->getMoney()));
@@ -302,7 +307,7 @@ void HelloWorld::startGame1(float ft) {
     myMiniHero->setDragable(true);
     if (_player == 1)
     {
-        // 使用懒加载方式获取 AI 英雄
+        // Use lazy loading to retrieve the AI hero
         AiminiHero* currentAiHero = getAiHero(_order);
         if (currentAiHero) {
             currentAiHero->setVisible(true);
@@ -317,7 +322,6 @@ void HelloWorld::startGame1(float ft) {
         com->recvHeroMessage();
         for (int i = 0; i < 56; i++)
             _message_[i] = com->HeroMessage[i];
-        ////这里写如果是联网message怎么变化
     }
 
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame2, this), 2.0, "startGame2");
@@ -382,7 +386,7 @@ void HelloWorld::startGame2(float ft) {
     }
     for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
     {
-        //如果是我的英雄
+        //If it is my hero
         if (it->_phero != nullptr)
         {
             int _name = (it->_phero)->getTag();
@@ -448,7 +452,7 @@ void HelloWorld::startGame2(float ft) {
 
     for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
     {
-        //如果是我的英雄
+        //If it is my hero
         if (it->_phero != nullptr)
         {
             _heroes.push_back(it->_phero);
@@ -458,7 +462,7 @@ void HelloWorld::startGame2(float ft) {
 
 }
 int HelloWorld::cheak() {
-    //我还没有死光
+    //My hero hasn't been completely defeated yet
     int win = 2;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
@@ -468,7 +472,7 @@ int HelloWorld::cheak() {
             break;
         }
     }
-    if (win == 2)//我死光了
+    if (win == 2)//My hero has been completely defeated
         return 0;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
@@ -478,22 +482,22 @@ int HelloWorld::cheak() {
             break;
         }
     }
-    if (win == 0)//对方死光了
+    if (win == 0)//The opponent has been completely defeated
         return 1;
     return 2;
 }
 void HelloWorld::checkWinLose(float ft) {
     int c = cheak();
 
-    if (c == 0) {//本方英雄死光了
-        // 输赢处理逻辑
+    if (c == 0) {//All of our heroes have been defeated 
+        // Win-loss handling logic
         myMiniHero->getHpBar()->setCurrentState(myMiniHero->getHpBar()->getCurrentState() - 4);
         myMiniHero->getHpBar()->updatePercent();
 
 
 
         this->unschedule("checkWinLose");
-        //英雄恢复满状态
+        //Hero restored to full status
         for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
         {
             if (it->_phero)
@@ -507,7 +511,7 @@ void HelloWorld::checkWinLose(float ft) {
         audio->playEffect("endgame_lose.mp3", false);
         audio->setEffectsVolume(1.0f);
 
-        //播放音效：
+        //Play audio
 
 
         myMiniHero->setLv(myMiniHero->getLv() + 1);
@@ -517,7 +521,7 @@ void HelloWorld::checkWinLose(float ft) {
 
         //  this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0, "startGame");
         this->scheduleOnce([this](float dt) {
-            // 在Lambda表达式中创建精灵
+            // Create a sprite within a lambda expression
             auto sprite = Sprite::create("Defeat.jpg");
             sprite->setScaleX(1.5f);
             sprite->setScaleY(1.6f);
@@ -525,23 +529,23 @@ void HelloWorld::checkWinLose(float ft) {
             sprite->setPosition(Vec2(0, 0));
             this->addChild(sprite, 0);
 
-            // 延时2秒后执行Lambda表达式
+            // Run the lambda expression with a 2-second delay"
             this->scheduleOnce([this, sprite](float dt) {
-                // 在Lambda表达式中移除精灵
+                // Remove the sprite within the lambda expression
                 this->removeChild(sprite);
                 }, 2.0f, "removeSprite");
             }, 1.0f, "createSprite");
         Gamewinorlose(false);
 
-        // 本轮游戏已经结束
+        // game over
 
     }
-    else if (c == 1) {//对方英雄死光了
-        // 输赢处理逻辑
+    else if (c == 1) {//The opponent's heroes have all been defeated
+        // Win-loss handling logic
         this->unschedule("checkWinLose");
-        // 本轮游戏已经结束
+        // The round has ended
 
-        //英雄恢复满状态
+        //Hero restored to full status
         for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
         {
             if (it->_phero)
@@ -561,16 +565,16 @@ void HelloWorld::checkWinLose(float ft) {
         myMiniHero->setMoney(myMiniHero->getMoney() + 3);
 
         this->scheduleOnce([this](float dt) {
-            // 在Lambda表达式中创建精灵
+            // Create a sprite within a lambda expression
             auto sprite = Sprite::create("Victory.jpg");
             sprite->setScaleX(1.5f);
             sprite->setScaleY(1.6f);
             sprite->setAnchorPoint(Vec2(0, 0));
             sprite->setPosition(Vec2(0, 0));
             this->addChild(sprite, 0);
-            // 延时2秒后执行Lambda表达式
+            // Run the lambda expression with a 2-second delay
             this->scheduleOnce([this, sprite](float dt) {
-                // 在Lambda表达式中移除精灵
+                // Remove the sprite within the lambda expression
                 this->removeChild(sprite);
                 }, 2.0f, "removeSprite");
             }, 1.0f, "createSprite");
@@ -578,8 +582,8 @@ void HelloWorld::checkWinLose(float ft) {
 
     }
     else {
-        // 游戏还未产生胜负
-       // CCLOG("游戏还未产生胜负");
+        // The game has not yet been decided
+       // CCLOG("The game has not yet been decided");
     }
 }
 
@@ -602,7 +606,7 @@ void HelloWorld::Gamewinorlose(int c) {
                 _AiMiniHero[i]->setMaxOnBoard(_AiMiniHero[i]->getMaxOnBoard() + 1);
             _AiMiniHero[i]->setMoney(_AiMiniHero[i]->getMoney() + dis(gen));
         }
-        //加金币、升级
+        //Add coins and level up
     }
     else if (_player == 2)
     {
@@ -612,10 +616,10 @@ void HelloWorld::Gamewinorlose(int c) {
             Director::getInstance()->replaceScene(scene);
 
         }
-        //退出或者继续
+        //exit or continue
         _order++;
     }
-    //显示输赢
+    //Display the result of win or loss
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::resetGame, this), 3.0f, "resetGame");
 }
 
@@ -645,9 +649,10 @@ void HelloWorld::resetGame(float dt) {
         valid[i] = 1;
     }
 
-    // 清除之前的游戏内容
-   // this->removeAllChildren();
-    /////先把所有上场英雄设为不可见和死亡
+    // Clear previous game content
+  // this->removeAllChildren();
+  ///// First, set all active heroes to invisible and dead
+
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
         //
@@ -655,18 +660,20 @@ void HelloWorld::resetGame(float dt) {
         (*it)->setVisible(false);
         (*it)->setIsDead(true);
     }
-    ////再把敌人的精灵移除
+ 
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
         if ((*it)->getCamp() == BLUE)
             this->removeChild(*it);
     }
-    //清除场上英雄的数组
+    //// Then remove the enemy's sprites
+
     _heroes.clear();
-    //对于我的上场英雄，将他们恢复（位置、死亡、隐身）
+    // For my active heroes, restore their (position, death state, invisibility)
+
     for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
     {
-        //如果是我的英雄
+        //if it is my hero
         if (it->_phero != nullptr)
         {
             it->_phero->setIsDead(false);
@@ -674,19 +681,20 @@ void HelloWorld::resetGame(float dt) {
             it->_phero->setPosition(Vec2(it->_x, it->_y));
         }
     }
-    // 重新初始化游戏
-// reinitGame();
+    // reinitGame();
     countdownValue = 9;
     this->scheduleOnce([this](float dt) {
-        // 每隔1秒更新一次倒计时
+        // Update the countdown every 1 second
         this->schedule([this](float dt) {
             countdownValue--;
             if (countdownValue >= 0) {
-                // 更新Label显示
+                // Update the label display
+
                 countdownLabel->setString(StringUtils::format("%d", countdownValue));
             }
             else {
-                // 倒计时结束，取消schedule
+                // Cancel the schedule upon countdown completion
+
                 this->unschedule("countdown");
             }
             }, 1.0f, "countdown");
@@ -696,7 +704,8 @@ void HelloWorld::resetGame(float dt) {
     menu->setEnabled(true);
     enableMouseEvents();
     myMiniHero->setPosition(Vec2(120, 120));
-    // 延时一段时间后开始新的一局
+    // Start a new round after a delay
+
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0f, "restartGame");
 }
 
@@ -753,7 +762,8 @@ void HelloWorld::OnMouseMove(Event* event) {
 
 void HelloWorld::buyExp(Ref* obj)
 {
-    //每买一次花费两个金币，涨5点经验
+    // Each purchase costs 2 coins and grants 5 experience points
+
     if (myMiniHero->getMoney() >= 2) {
         myMiniHero->setMoney(myMiniHero->getMoney() - 2);
         myMiniHero->takeExp(5);
@@ -796,26 +806,30 @@ void HelloWorld::Refresh(Ref* obj) {
     }
 }
 
-// 添加懒加载方法实现
+// Implement lazy loading methods
 AiminiHero* HelloWorld::getAiHero(int index)
 {
     if (index < 0 || index >= Ainum) {
         return nullptr;
     }
 
+    // Ensure the AiminiHero object is initialized if needed
     initAiHeroIfNeeded(index);
     return _AiMiniHero[index];
 }
 
 void HelloWorld::initAiHeroIfNeeded(int index)
 {
+    // Check if the AiminiHero object has not been created yet
     if (!_aiHeroCreated[index]) {
+        // Create the AiminiHero object using lazy loading
         AiminiHero* _aiai = AiminiHero::create("minihero.png", RED, HEALTH, dis(gen));
         this->addChild(_aiai);
         _aiai->setDragable(0);
         _aiai->setPosition(Vec2(800, 500));
-        _aiai->setVisible(false); // 初始设置为不可见
+        _aiai->setVisible(false); // Initially set to invisible
 
+        // Store the created object and mark it as created
         _AiMiniHero[index] = _aiai;
         _aiHeroCreated[index] = true;
     }

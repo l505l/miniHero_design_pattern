@@ -60,10 +60,7 @@ bool MusicSetting::init()
     // 2. add a menu item with "X" image, which is clicked to quit the program
     //    you may modify it.
 
-
-
     // create menu, it's an autorelease object
-    //--------------------------���д��
     auto menuItemImageBack = MenuItemImage::create("back.png", "back1.png", CC_CALLBACK_1(MusicSetting::back, this));
     menuItemImageBack->setPosition(Vec2(40, visibleSize.height - 20));
 
@@ -75,9 +72,6 @@ bool MusicSetting::init()
     menuItemImageMusic2->setPosition(Vec2(visibleSize.width / 2 - 200, visibleSize.height / 2 - 50));
     menuItemImageMusic2->setScale(0.25);
 
-
-
-
     auto menuItemImageVolumehigh = MenuItemImage::create("high.png", "high.png", CC_CALLBACK_1(MusicSetting::Volumehigh, this));
     menuItemImageVolumehigh->setPosition(Vec2(visibleSize.width / 2 + 200, visibleSize.height / 2 + 150));
     auto menuItemImageVolumemiddle = MenuItemImage::create("middle.png", "middle.png", CC_CALLBACK_1(MusicSetting::Volumemiddle, this));
@@ -85,8 +79,7 @@ bool MusicSetting::init()
     auto menuItemImageVolumelow = MenuItemImage::create("low.png", "low.png", CC_CALLBACK_1(MusicSetting::Volumelow, this));
     menuItemImageVolumelow->setPosition(Vec2(visibleSize.width / 2 + 200, visibleSize.height / 2 - 150));
 
-
-    // 添加撤销和重做按钮
+    // Add undo and redo buttons
     auto undoButton = MenuItemImage::create(
         "undo.png",
         "undo.png",
@@ -103,7 +96,7 @@ bool MusicSetting::init()
         });
     redoButton->setPosition(Vec2(visibleSize.width - 50, visibleSize.height - 50));
 
-    // 将撤销和重做按钮添加到菜单中
+    // Add undo and redo buttons to the menu
     auto menu = Menu::create(
         menuItemImageBack,
         menuItemImageMusic1,
@@ -119,7 +112,7 @@ bool MusicSetting::init()
 
     /////////////////////////////
     // 3. add your codes below...
-// add "Choice" splash screen"
+    // add "Choice" splash screen"
     auto sprite = Sprite::create("youxijiemian.jpg");
     if (sprite == nullptr)
     {
@@ -134,41 +127,29 @@ bool MusicSetting::init()
         this->addChild(sprite, 0);
     }
 
-
-
-    /*
-    auto menu = Menu::create(menuItemImageBack, NULL);
-    menu->setPosition(Vec2(0, 0));
-    this->addChild(menu);
-
-*/
-
-/*  auto spriteduola = Sprite::create("duola.png");
-  this->addChild(spriteduola, 0);
-  spriteduola->setPosition(100, 200);*/
     return true;
 }
 
-
 void MusicSetting::menuCloseCallback(Ref* pSender)
 {
-    //Close the cocos2d-x game scene and quit the application
+    // Close the cocos2d-x game scene and quit the application
     Director::getInstance()->end();
 
-    /*To navigate back to native iOS screen(if present) without quitting the application  ,do not use Director::getInstance()->end() as given above,instead trigger a custom event created in RootViewController.mm as below*/
+    /* To navigate back to native iOS screen(if present) without quitting the application, do not use Director::getInstance()->end() as given above, instead trigger a custom event created in RootViewController.mm as below */
 
-    //EventCustom customEndEvent("game_scene_close_event");
-    //_eventDispatcher->dispatchEvent(&customEndEvent);
-
-
+    // EventCustom customEndEvent("game_scene_close_event");
+    // _eventDispatcher->dispatchEvent(&customEndEvent);
 }
+
 void MusicSetting::back(Ref* obj) {
     auto scene = Choice::createScene();
     Director::getInstance()->replaceScene(scene);
 }
+
 void MusicSetting::setmusic1(Ref* obj) {
     invoker.executeCommand(new PlayMusicCommand("longtimenosee.mp3"));
 }
+
 void MusicSetting::setmusic2(Ref* obj) {
     invoker.executeCommand(new PlayMusicCommand("lovestory.mp3"));
 }
@@ -176,9 +157,11 @@ void MusicSetting::setmusic2(Ref* obj) {
 void MusicSetting::Volumehigh(Ref* obj) {
     invoker.executeCommand(new VolumeCommand(1.0f));
 }
+
 void MusicSetting::Volumemiddle(Ref* obj) {
     invoker.executeCommand(new VolumeCommand(0.5f));
 }
+
 void MusicSetting::Volumelow(Ref* obj) {
     invoker.executeCommand(new VolumeCommand(0.2f));
 }

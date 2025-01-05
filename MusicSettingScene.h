@@ -28,10 +28,15 @@
 #include "cocos2d.h"
 #include "IMusicCommand.h"
 
+// This class uses the Command Pattern to manage music settings.
+// The Command Pattern encapsulates a request as an object, thereby
+// allowing for parameterization of clients with queues, requests, and operations.
 class MusicSetting : public cocos2d::Scene
 {
 private:
-    // 命令调用�?
+    // Command invoker
+    // This class is responsible for executing commands and maintaining
+    // a history of executed commands to support undo and redo operations.
     class MusicInvoker {
     private:
         std::stack<std::unique_ptr<IMusicCommand>> commandHistory;
@@ -73,9 +78,9 @@ public:
     void setmusic2(Ref* obj);
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
-    void MusicSetting::Volumehigh(Ref* obj);
-    void MusicSetting::Volumelow(Ref* obj);
-    void MusicSetting::Volumemiddle(Ref* obj);
+    void Volumehigh(Ref* obj);
+    void Volumelow(Ref* obj);
+    void Volumemiddle(Ref* obj);
     // implement the "static create()" method manually
     CREATE_FUNC(MusicSetting);
 };
