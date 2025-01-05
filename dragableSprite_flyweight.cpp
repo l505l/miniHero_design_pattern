@@ -1,3 +1,4 @@
+/*Refactored by Flyweight Pattern*/
 #include "dragablesprite.h"
 
 //this whole file was rewriten when implement flyweight pattern 

@@ -1,13 +1,14 @@
+/*Refactored by Bridge Pattern*/
 #include "StateBar.h"
 
-// Bridge Pattern: 实现部分的共享方法实现
-// 这是一个所有具体状态栏实现类都可以使用的通用功能
+// Bridge Pattern: Implementation of shared methods
+// This is a common functionality that can be used by all concrete state bar implementation classes
 void StateBar::updatePercent() {
-    // Bridge Pattern: 实现了状态值到显示百分比的转换
-    // 这种实现方式使得显示逻辑与具体状态栏类型解耦
-    // 子类可以直接使用此方法，也可以根据需要重写它
+    // Bridge Pattern: Implements conversion from state value to display percentage
+    // This implementation decouples display logic from specific state bar types
+    // Subclasses can use this method directly or override it as needed
     setPercent(_currentValue * 100.0f / _maxValue);
 }
 
-// 注意：其他虚函数（如init、updateValue、recover）
-// 由具体的子类实现，体现了Bridge模式中实现部分的可扩展性
+// Note: Other virtual functions (like init, updateValue, recover)
+// Are implemented by concrete subclasses, demonstrating the extensibility of the Bridge pattern implementation

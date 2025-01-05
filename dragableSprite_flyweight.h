@@ -1,3 +1,4 @@
+/*Refactored by Flyweight Pattern*/
 #ifndef __DRAGABLE_SPRITE_H__
 #define __DRAGABLE_SPRITE_H__
 

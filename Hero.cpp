@@ -1,3 +1,4 @@
+/* Refactored by Bridge Pattern */
 #include"Hero.h"
 #include"HelloWorldScene.h"
 std::string msg = "has reached its maximum";
@@ -13,21 +14,17 @@ void showmessage(Scene* scene, const std::string& msg) {
 	scene->schedule(showmessage, 1.0f, "showmsg");
 }
 
-
-
 void Hero::updateAttackTarget()
 {
 	Hero* tmpTarget = NULL;
 	float MinDistance = INT_MAX;
-	//if (getAttackTarget() != NULL)
-	//	setLatestTargetPos(getAttackTarget()->getPosition());//������һ�ε�����
 	std::vector<Hero* > AllHeroes = dynamic_cast<HelloWorld*>(_presentScene)->_heroes;
 	for (auto it = AllHeroes.begin(); it != AllHeroes.end(); ++it)
 	{
-		//��Ӫ��ͬ û������ �ڹ�����Χ�� �ɼ�
+		// Check if target is: different camp, not dead, in attack range, visible
 		if (this->getCamp() != (*it)->getCamp() && !(*it)->getIsDead())
 		{
-			if ((*it)->getPosition().distance(this->getPosition()) <= MinDistance) //ȡ���������
+			if ((*it)->getPosition().distance(this->getPosition()) <= MinDistance) // Get closest target
 			{
 				MinDistance = (*it)->getPosition().distance(this->getPosition());
 				tmpTarget = *it;
@@ -49,7 +46,7 @@ void Hero::onTouchEnded(Touch* touch, Event* event) {
 		mapPoint* landPoint = scene->myMiniHero->landOn(touch->getLocation());
 		mapPoint* startPoint = scene->myMiniHero->landOn(_dragStart);
 
-		//����ĳ���������Ҹõ�Ϊ��
+		// If landing point exists and is empty
 		if (landPoint && landPoint->_phero == nullptr) {
 			if (landPoint->tag == BATTLE) {
 				if (!this->getIsOnTheStage()) {
@@ -76,13 +73,11 @@ void Hero::onTouchEnded(Touch* touch, Event* event) {
 				scene->myMiniHero->upGrade(this);
 			}
 			if (landPoint->tag == DELETE) {
-				
 				mmHero->setMoney(mmHero->getMoney() + getLv() * 1);
 				removeFromParent();
-				//setPosition(Vec2(landPoint->_x, landPoint->_y));
 			}
 		}
-		//�����ڣ�����ԭλ��
+		// If landing point occupied, return to original position
 		else {
 			setPosition(Vec2(startPoint->_x, startPoint->_y));
 			startPoint->_phero = this;
@@ -92,11 +87,11 @@ void Hero::onTouchEnded(Touch* touch, Event* event) {
 
 bool Hero::onTouchBegan(Touch* touch, Event* event)
 {
-	//�������ק���ھ��������ڣ������߼�
+	// If draggable and touch point is within bounding box
 	if (_dragable && getBoundingBox().containsPoint(touch->getLocation())) {
-		//���濪ʼλ��
+		// Record starting position
 		setDragStart(this->getPosition());
-		// ��ȡ����������ھ������½ǵ�ƫ����
+		// Get offset between touch point and sprite position
 		touchOffset = touch->getLocation() - this->getPosition();
 		HelloWorld* scene = dynamic_cast<HelloWorld*>(_presentScene);
 
@@ -107,7 +102,7 @@ bool Hero::onTouchBegan(Touch* touch, Event* event)
 			}
 		}
 	}
-	// ����������ھ��������ڣ�����Ϊ�����¼�������
+	// Return true if touch is valid for this sprite
 	return _dragable && getBoundingBox().containsPoint(touch->getLocation());
 }
 
@@ -116,28 +111,29 @@ bool Hero::operator==(const Hero& hero1)
 	return _tag == hero1._tag && _lv == hero1._lv;
 }
 
-// Bridge Pattern: 状态栏管理相关方法实现
+// Bridge Pattern: Implementation of state bar management methods
 void Hero::addStateBar(StateBar* stateBar) {
-	// Bridge Pattern: 实现部分与抽象部分的连接点
-	// 通过组合方式将具体的状态栏实现(StateBar)与英雄类(Hero)关联
+	// Bridge Pattern: Connection point between abstraction and implementation
+	// Associates concrete state bar implementation (StateBar) with hero class (Hero) through composition
 	if (stateBar) {
-		// 将状态栏对象存储在映射表中，建立类型到实例的对应关系
+		// Store state bar object in map, establishing type-to-instance mapping
 		_stateBars[stateBar->getType()] = stateBar;
 		
-		// 将状态栏作为子节点添加到英雄对象中
+		// Add state bar as child node to hero object
 		this->addChild(stateBar);
 		
-		// Bridge Pattern: 实现部分的具体定位逻辑
-		// 根据状态栏类型设置不同的显示位置，展现了实现部分的独立变化
+		// Bridge Pattern: Concrete positioning logic in implementation
+		// Set different display positions based on state bar type
+		// Demonstrates independent variation of implementation part
 		stateBar->setPosition(Vec2(this->getContentSize().width / 2, 
 			this->getContentSize().height + (stateBar->getType() == "energy" ? -10 : 0)));
 	}
 }
 
-// Bridge Pattern: 获取特定类型状态栏的接口方法
+// Bridge Pattern: Interface method to get specific type of state bar
 StateBar* Hero::getStateBar(const std::string& type) {
-	// 在映射表中查找并返回对应类型的状态栏实现
-	// 这种实现方式使得状态栏的访问与具体实现解耦
+	// Look up and return corresponding state bar implementation from map
+	// This implementation decouples state bar access from concrete implementation
 	auto it = _stateBars.find(type);
 	return it != _stateBars.end() ? it->second : nullptr;
 }

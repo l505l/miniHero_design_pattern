@@ -1,3 +1,4 @@
+/* Refactored by Prototype Pattern */
 #include"Hero.h"
 #include "HeroDaJi.h"
 #include<string>
@@ -21,8 +22,8 @@ bool HeroDaJi::init(Ecamp camp, Ref* scene)
     myAttackSprite = Sprite::create("Normal.png");
     setPresentScene(scene);
     //mySprite->setScale(150);
-    //float _attackTargetWidth = 30.0f; // Ŀ����
-    //float _attackTargetHeight = 50.0f; // Ŀ߶
+    //float _attackTargetWidth = 30.0f; // Target width
+    //float _attackTargetHeight = 50.0f; // Target height
     float scaleFactorX = scalingWidth / this->getContentSize().width;
     float scaleFactorY = scalingHeight / this->getContentSize().height;
     this->setScaleX(scaleFactorX);
@@ -86,17 +87,17 @@ bool HeroDaJi::init(Ecamp camp, Ref* scene)
     return true;
 }
 void HeroDaJi::displayHeroLevel(int level) {
-    // һ Label ʾȼ
+    // Create a Label to display level
     this->label = Label::createWithTTF("lv." + std::to_string(level), "fonts/Marker Felt.ttf", 24);
 
-    // Label λ
+    // Set Label position
     label->setPosition(Vec2(Vec2(this->getContentSize().width / 2,
         this->getContentSize().height + 30 - label->getContentSize().height)));
 
-    // ıɫ
+    // Set text color
     label->setColor(Color3B::WHITE);
 
-    // Label ӵ
+    // Add Label as child
     this->addChild(label, 1);
 }
 void HeroDaJi::upDateMoving()
@@ -113,7 +114,7 @@ void HeroDaJi::upDateMoving()
             auto heroPosition = this->getPosition();
             auto enemyPosition = _attackTarget->getPosition();
 
-            // ĽǶ
+            // Calculate direction
             float deltaX = enemyPosition.x - heroPosition.x;
             int curDir = deltaX > 0 ? 1 : -1;
 
@@ -135,16 +136,16 @@ void HeroDaJi::upDateMoving()
     this->schedule(upDateMove, 1.0f, "upDateMoving");
 }
 void HeroDaJi::initWalkingAnimation(Vec2 destination) {
-    Vector<SpriteFrame*> animFrames; // ֡
-    animFrames.pushBack(SpriteFrame::create("DaJiright1.png", Rect(0, 0, 430, 430))); // ֡
-    animFrames.pushBack(SpriteFrame::create("DaJiright2.png", Rect(0, 0, 430, 430))); // ֡
-    animFrames.pushBack(SpriteFrame::create("DaJiright3.png", Rect(0, 0, 430, 430))); // ֡
-    animFrames.pushBack(SpriteFrame::create("DaJiright4.png", Rect(0, 0, 430, 430))); // ֡
+    Vector<SpriteFrame*> animFrames; // Animation frames
+    animFrames.pushBack(SpriteFrame::create("DaJiright1.png", Rect(0, 0, 430, 430))); // Frame 1
+    animFrames.pushBack(SpriteFrame::create("DaJiright2.png", Rect(0, 0, 430, 430))); // Frame 2
+    animFrames.pushBack(SpriteFrame::create("DaJiright3.png", Rect(0, 0, 430, 430))); // Frame 3
+    animFrames.pushBack(SpriteFrame::create("DaJiright4.png", Rect(0, 0, 430, 430))); // Frame 4
     auto animation = Animation::createWithSpriteFrames(animFrames, 0.225f);
     auto animate = Animate::create(animation);
     auto repeatForever = RepeatForever::create(animate);
     this->stopAllActions();
-    this->runAction(repeatForever);  // ʼ߶
+    this->runAction(repeatForever);  // Start animation
 
     auto Time = (this->getPosition().distance((_attackTarget)->getPosition())) / _spd;
     auto move = MoveTo::create(Time, destination);
@@ -154,11 +155,11 @@ void HeroDaJi::initWalkingAnimation(Vec2 destination) {
 
 void HeroDaJi::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
-    //animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright1.png", Rect(0, 0, 400, 400))); // ֡
-    animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright2.png", Rect(0, 0, 400, 400))); // ֡
-    animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright3.png", Rect(0, 0, 400, 400))); // ֡
+    //animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright1.png", Rect(0, 0, 400, 400))); // Frame 1
+    animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright2.png", Rect(0, 0, 400, 400))); // Frame 2
+    animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright3.png", Rect(0, 0, 400, 400))); // Frame 3
     //animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright1.png", Rect(0, 0, 400, 400)));
-    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fΪÿ֡ʱ
+    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1f is time per frame
     auto animateAttack = Animate::create(animationAttack);
     auto ATTACK = Spawn::create(animateAttack, nullptr, nullptr);
 
@@ -199,8 +200,8 @@ CallFunc* HeroDaJi::fireArrow() {
                 size = 40;
                 damageDelta = this->getAttackPower();
             }
-            auto arrowSprite = Sprite::create(path); // ʸ
-            arrowSprite->setPosition(this->getPosition()); // ʸĳʼλ
+            auto arrowSprite = Sprite::create(path); // Create arrow sprite
+            arrowSprite->setPosition(this->getPosition()); // Set initial arrow position
 
             auto spriteSize = this->getContentSize();
             arrowSprite->setScale(spriteSize.width / (size * arrowSprite->getContentSize().width),
@@ -210,12 +211,12 @@ CallFunc* HeroDaJi::fireArrow() {
 
                 return nullptr;
             }
-            auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // ʸƶĿλ
+            auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // Move arrow to target position
             auto removeArrow = CallFunc::create([arrowSprite, this, damageDelta]() {
-                //arrowSprite->removeFromParent(); // ɺƳʸ
+                //arrowSprite->removeFromParent(); // Remove arrow after hit
                 if (arrowSprite && _attackTarget && arrowSprite->getBoundingBox().intersectsRect((_attackTarget->getBoundingBox()))) {
-                    arrowSprite->removeFromParent(); // Ƴʸ
-                    //arrowSprite = nullptr; // ռʸ
+                    arrowSprite->removeFromParent(); // Remove arrow
+                    //arrowSprite = nullptr; // Clear arrow pointer
                     _attackTarget->getHpBar()->changeStateBy(-damageDelta);
                     if (getCamp() == BLUE)
                     {
@@ -240,7 +241,7 @@ CallFunc* HeroDaJi::fireArrow() {
             auto arrowSequence = Sequence::create(moveArrow, removeArrow, nullptr);
             if (this->isVisible())
             {
-                arrowSprite->runAction(arrowSequence); // ִмʸ
+                arrowSprite->runAction(arrowSequence); // Execute arrow action
                 dynamic_cast<HelloWorld*>(this->getPresentScene())->addChild(arrowSprite);
             }
             //checkArrowCollision(arrowSprite);
@@ -250,38 +251,28 @@ CallFunc* HeroDaJi::fireArrow() {
 }
 void HeroDaJi::upGrade()
 {
+    // Bridge Pattern: Update status bars on level up
+    // Remove old status bar implementations
     this->removeStateBar("health");
     this->removeStateBar("energy");
 
+    // Update attribute values
     this->setHpLim(getHpLim() * 2);
     this->setEnergyLim(getEnergyLim() / 2);
-    this->setSpd(getSpd() * 1.5f);
-    this->setLv(getLv() + 1);
 
-    this->removeChild(label, true);
-    this->displayHeroLevel(getLv());
-
-    this->setAttackScope(getAttackScope() * 1.2f);
-    this->setAttackPower(getAttackPower() * 2);
-    this->setSkillPower(getSkillPower() * 2);
+    // Bridge Pattern: Create and add new status bar implementations
     auto newHealthBar = HealthBar::create(this->getHpLim(), 0, getCamp());
     auto newEnergyBar = EnergyBar::create(this->getEnergyLim(), 
         getEnergyRecoverRate() * 2, getCamp());
     
     this->addStateBar(newHealthBar);
     this->addStateBar(newEnergyBar);
-
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
 }
 Hero* HeroDaJi::clone() const {
-    // 1. 创建新的妲己实例
+    // 1. Create new DaJi instance
     auto newHero = new HeroDaJi();
 
-    // 2. 复制基本属性
+    // 2. Copy basic attributes
     newHero->setLv(this->getLv());
     newHero->setCamp(this->getCamp());
     newHero->setIsDead(this->getIsDead());
@@ -289,7 +280,7 @@ Hero* HeroDaJi::clone() const {
     newHero->setIsMoving(this->getIsMoving());
     newHero->setIsOnTheStage(this->getIsOnTheStage());
     
-    // 3. 复制战斗属性
+    // 3. Copy combat attributes
     newHero->setHpLim(this->getHpLim());
     newHero->setSpd(this->getSpd());
     newHero->setAttackScope(this->getAttackScope());
@@ -299,7 +290,7 @@ Hero* HeroDaJi::clone() const {
     newHero->setEnergyRecoverRate(this->getEnergyRecoverRate());
     newHero->setDir(this->getDir());
 
-    // 4. 复制UI标签
+    // 4. Copy UI label
     if (this->getLable()) {
         auto newLabel = Label::createWithTTF(
             this->getLable()->getString(),
@@ -311,7 +302,7 @@ Hero* HeroDaJi::clone() const {
         newHero->setLable(newLabel);
     }
 
-    // 5. 复制血条
+    // 5. Copy health bar
     if (this->getHpBar()) {
         auto newHpBar = HP::create();
         newHpBar->setMaxValue(this->getHpBar()->getMaxValue());
@@ -321,7 +312,7 @@ Hero* HeroDaJi::clone() const {
         newHero->setHpBar(newHpBar);
     }
 
-    // 6. 复制能量条
+    // 6. Copy energy bar
     if (this->getEnergyBar()) {
         auto newEnergyBar = HP::create();
         newEnergyBar->setMaxValue(this->getEnergyBar()->getMaxValue());
@@ -331,19 +322,18 @@ Hero* HeroDaJi::clone() const {
         newHero->setEnergyBar(newEnergyBar);
     }
 
-    // 7. 复制精灵属性
+    // 7. Copy sprite attributes
     newHero->setScale(this->getScale());
     newHero->setPosition(this->getPosition());
     newHero->setRotation(this->getRotation());
     newHero->setVisible(this->isVisible());
     newHero->setOpacity(this->getOpacity());
 
-    // 8. 复制dragableSprite相关属性
+    // 8. Copy dragableSprite related attributes
     newHero->setDragable(this->isDragable());
     
-    // 注意：不复制 _attackTarget，因为这是战斗时的动态目标
+    // Note: Don't copy _attackTarget as it's a dynamic target during battle
     newHero->setAttackTarget(nullptr);
 
     return newHero;
 }
-

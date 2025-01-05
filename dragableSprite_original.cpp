@@ -19,25 +19,23 @@ dragableSprite* dragableSprite::create(const std::string& filename, int tag,Ref*
 
 bool dragableSprite::onTouchBegan(Touch* touch, Event* event)
 {
-
-	//保存开始位置
+	// Set starting position
 	setDragStart(this->getPosition());
-	// 获取触摸点相对于精灵左下角的偏移量
-	//MAP::Takeup(touch->getLocation());
-
+	
+	// Calculate offset between touch point and sprite position
 	touchOffset = touch->getLocation() - this->getPosition();
 
-	// 如果触摸点在精灵区域内，则认为触摸事件被处理
+	// Return true if sprite is dragable and touch point is within sprite bounds
 	return _dragable && getBoundingBox().containsPoint(touch->getLocation());
 }
 
 void dragableSprite::onTouchMoved(Touch* touch, Event* event) {
-	// 移动精灵到新的位置，考虑触摸点的偏移量
+	// Move sprite to new position while maintaining touch offset
 	this->setPosition(touch->getLocation() - touchOffset);
 }
 
 void dragableSprite::onTouchEnded(Touch* touch, Event* event) {
-	// 在这里可以处理触摸结束时的逻辑
+	// Handle logic when touch ends
 	//int index = -1;
 	//Vec2 dest=MAP::CanDrop(touch->getLocation(),index);
 	//if (dest != Vec2(-1, -1)) {
@@ -50,7 +48,7 @@ void dragableSprite::onTouchEnded(Touch* touch, Event* event) {
 	//}
 }
 
-//把监听器给到dispatcher
+// Add touch listener to event dispatcher
 void dragableSprite::addTouchListener()
 {
 	//scheduleupdate();
@@ -60,4 +58,3 @@ void dragableSprite::addTouchListener()
 	touchListener->onTouchEnded = CC_CALLBACK_2(dragableSprite::onTouchEnded, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
 }
-

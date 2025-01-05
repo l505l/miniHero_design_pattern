@@ -10,24 +10,24 @@ USING_NS_CC;
 
 class dragableSprite: public cocos2d::Sprite
 {
-	//标签，目前没有具体含义，可以继承后修改
+	// Tag currently has no specific meaning, can be inherited and modified
 	CC_SYNTHESIZE(int, _tag, Tag);
 
-	//一次拖拽的起点
+	// Starting point for dragging
 	CC_SYNTHESIZE(Vec2, _dragStart,DragStart);
-	//可否拖动的标签
+	// Flag indicating if sprite can be dragged
 	CC_SYNTHESIZE(bool,_dragable, Dragable);
 
 	CC_SYNTHESIZE(Ref*, _presentScene, PresentScene);
 
-	//放置监听器
+	// Add touch listener
 	void addTouchListener();
 protected:
-	//touch动作的三个回调函数，目前只用于
+	// Touch event callback functions, currently only basic implementation
 	virtual bool onTouchBegan(Touch* touch, Event* event);
 	virtual void onTouchMoved(Touch* touch, Event* event);
 	virtual void onTouchEnded(Touch* touch, Event* event);
-	Vec2 touchOffset;  // 用于存储触摸点相对于精灵左下角的偏移量
+	Vec2 touchOffset;  // Store the offset between touch point and sprite's bottom-left corner
 
 public:
 	static dragableSprite* create(const std::string& filename, int tag,Ref* presentScene);

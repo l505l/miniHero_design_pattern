@@ -1,24 +1,25 @@
+/*Refactored by Prototype Pattern and Bridge Pattern*/
 #ifndef __HEROHouYi_H__
 #define __HEROHouYi_H__
 
 #include "Hero.h"
 #include "HelloWorldScene.h"
 
-// Bridge Pattern: 具体英雄类
-// HeroHouYi 继承自 Hero 类，作为抽象部分的具体实现
-// 通过继承获得了与状态栏（实现部分）的桥接能力
+// Bridge Pattern: Concrete Hero Class
+// HeroHouYi inherits from Hero class as concrete implementation of abstraction
+// Gains bridging capability with status bars (implementation part) through inheritance
 class HeroYase : public Hero {
 public:
-	// Bridge Pattern: 工厂方法
-	// 创建英雄实例时会同时初始化相关的状态栏实现
+	// Bridge Pattern: Factory Method
+	// Initializes related status bar implementations when creating hero instance
 	static HeroYase* create(Ecamp camp, Ref* scene);
 	
-	// Bridge Pattern: 初始化方法
-	// 在这里建立与具体状态栏实现的关联
+	// Bridge Pattern: Initialization Method
+	// Establishes association with concrete status bar implementations here
 	bool init(Ecamp camp, Ref* scene);
 
-	// 英雄特有的行为方法
-	// 这些方法可能会使用到桥接的状态栏实现
+	// Hero-specific behavior methods
+	// These methods may use bridged status bar implementations
 	void initWalkingAnimation(Vec2 destination);
 	void decideToAttack();
 	void performAttack();
@@ -28,7 +29,7 @@ public:
 	void upGrade();
 	void displayHeroLevel(int level);
 	CallFunc* hitTarget();
-	// 具体英雄类完整实现clone方法
+	// Concrete hero class fully implements clone method
 	virtual Hero* clone() const override;
 };
 
