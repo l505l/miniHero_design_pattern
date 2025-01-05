@@ -1,105 +1,13 @@
-/*
-#include "Net.h"
-Net* Net::_theOne = NULL;
-
-bool Net::StartServer(unsigned short port)
-{
-	//����socket
-	_server = socket(AF_INET, SOCK_STREAM, 0);
-	if (_server == INVALID_SOCKET)
-	{
-		int err = WSAGetLastError();
-		CCLOG("Socket creat error %d", err);
-		return false;
-	}
-	setNonBlock(_server);
-
-	struct sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.S_un.S_addr = INADDR_ANY;
-
-	int ret = bind(_server, (struct sockaddr*)&addr, sizeof(addr));
-	if (ret == SOCKET_ERROR)
-	{
-		CCLOG("bind sockett error!");
-		closesocket(_server);
-		return false;
-	}
-	listen(_server, 10);
-	_isServer = true;
-	_isListen = true;
-	_isConnect = false;
-	return true;
-}
-
-bool Net::Accept()
-{
-	if (!_isServer || !_isListen || _isConnect) return false;
-	_client = accept(_server, NULL, NULL);
-	if (_client == INVALID_SOCKET)
-		return false;
-	setNonBlock(_client);
-	_isConnect = true;
-	return true;
-}
-
-bool Net::Connect(unsigned short port, const char* ipaddr)
-{
-	//����socket
-	_client = socket(AF_INET, SOCK_STREAM, 0);
-	if (_client == INVALID_SOCKET)
-	{
-		CCLOG("err");
-		return false;
-	}
-	struct sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.S_un.S_addr = inet_addr(ipaddr);
-
-	int ret = connect(_client, (struct sockaddr*)&addr, sizeof(addr));
-	if (ret == SOCKET_ERROR)
-	{
-		CCLOG("connect error!");
-		closesocket(_client);
-		_client = INVALID_SOCKET;
-		return false;
-	}
-
-	setNonBlock(_client);
-	_isServer = false;
-	_isListen = false;
-	_isConnect = true;
-	return true;
-}
-
-//�ͻ��˺ͷ���˹��ýӿ�
-int Net::Recv(void* buf, int len)
-{
-	if (!_isConnect) return-1;//24 04
-
-	int ret = recv(_client, (char*)buf, len, 0);
-	return ret;
-}
-
-int Net::Send(char* buf, int len)
-{
-	if (!_isConnect) return -1;
-	return send(_client, buf, len, 0);
-}
-*/
-
-
+/* Refactored by Singleton Pattern */
 #include "Net.h"
 
-// 初始化静态成员
+// Initialize static members for singleton pattern
 Net* Net::_instance = nullptr;
 std::mutex Net::_mutex;
 
 bool Net::StartServer(unsigned short port)
 {
-	// 创建服务器套接字
+	// Create server socket
 	_server = socket(AF_INET, SOCK_STREAM, 0);
 	if (_server == INVALID_SOCKET)
 	{
@@ -107,16 +15,16 @@ bool Net::StartServer(unsigned short port)
 		CCLOG("Socket create error %d", err);
 		return false;
 	}
-	// 设置非阻塞模式
+	// Set non-blocking mode
 	setNonBlock(_server);
 
-	// 设置服务器地址结构
+	// Configure server address structure
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.S_un.S_addr = INADDR_ANY;
 
-	// 绑定地址和端口
+	// Bind address and port
 	int ret = bind(_server, (struct sockaddr*)&addr, sizeof(addr));
 	if (ret == SOCKET_ERROR)
 	{
@@ -124,7 +32,7 @@ bool Net::StartServer(unsigned short port)
 		closesocket(_server);
 		return false;
 	}
-	// 开始监听
+	// Start listening for connections
 	listen(_server, 10);
 	_isServer = true;
 	_isListen = true;
@@ -134,15 +42,15 @@ bool Net::StartServer(unsigned short port)
 
 bool Net::Accept()
 {
-	// 检查状态是否允许接受连接
+	// Check if singleton instance is in valid state to accept connections
 	if (!_isServer || !_isListen || _isConnect) return false;
 	
-	// 接受客户端连接
+	// Accept client connection
 	_client = accept(_server, NULL, NULL);
 	if (_client == INVALID_SOCKET)
 		return false;
 		
-	// 设置客户端套接字为非阻塞模式
+	// Set client socket to non-blocking mode
 	setNonBlock(_client);
 	_isConnect = true;
 	return true;
@@ -150,7 +58,7 @@ bool Net::Accept()
 
 bool Net::Connect(unsigned short port, const char* ipaddr)
 {
-	// 创建客户端套接字
+	// Create client socket for singleton instance
 	_client = socket(AF_INET, SOCK_STREAM, 0);
 	if (_client == INVALID_SOCKET)
 	{
@@ -158,13 +66,13 @@ bool Net::Connect(unsigned short port, const char* ipaddr)
 		return false;
 	}
 	
-	// 设置服务器地址结构
+	// Configure server address structure
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.S_un.S_addr = inet_addr(ipaddr);
 
-	// 连接到服务器
+	// Connect to server
 	int ret = connect(_client, (struct sockaddr*)&addr, sizeof(addr));
 	if (ret == SOCKET_ERROR)
 	{
@@ -174,7 +82,7 @@ bool Net::Connect(unsigned short port, const char* ipaddr)
 		return false;
 	}
 
-	// 设置非阻塞模式并更新状态
+	// Set non-blocking mode and update singleton state
 	setNonBlock(_client);
 	_isServer = false;
 	_isListen = false;
@@ -184,19 +92,19 @@ bool Net::Connect(unsigned short port, const char* ipaddr)
 
 int Net::Recv(void* buf, int len)
 {
-	// 检查连接状态
+	// Check if singleton instance is connected
 	if (!_isConnect) return -1;
 
-	// 接收数据
+	// Receive data through singleton's client socket
 	int ret = recv(_client, (char*)buf, len, 0);
 	return ret;
 }
 
 int Net::Send(char* buf, int len)
 {
-	// 检查连接状态
+	// Check if singleton instance is connected
 	if (!_isConnect) return -1;
 	
-	// 发送数据
+	// Send data through singleton's client socket
 	return send(_client, buf, len, 0);
 }

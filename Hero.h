@@ -1,38 +1,45 @@
+/* Refactored by Prototype Pattern */
 #ifndef __HERO_H__
 #define __HERO_H__
 
-#include"dragableSprite.h"
-#include"HP.h"
+#include "dragableSprite.h"
+#include "HP.h"
 USING_NS_CC;
 
-class Hero :public dragableSprite
-{
+// The Hero class serves as the prototype interface
+class Hero : public dragableSprite {
+protected:
+	// åŸæœ‰å±æ€§
 	CC_SYNTHESIZE(Label*, label, Lable);
-	CC_SYNTHESIZE(Ecamp, _camp, Camp);//ÕóÓª;
+	CC_SYNTHESIZE(Ecamp, _camp, Camp);
 	CC_SYNTHESIZE(bool, _isDead, IsDead);
 	CC_SYNTHESIZE(bool, _isHurt, IsHurt);
 	CC_SYNTHESIZE(bool, _isMoving, IsMoving);
-	CC_SYNTHESIZE(INT32, _hpLim, HpLim);//½¡¿µÉÏÏŞ;
+	CC_SYNTHESIZE(INT32, _hpLim, HpLim);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
 	//CC_SYNTHESIZE(INT32, _hpCur, HpCur);
-	CC_SYNTHESIZE(float, _spd, Spd);//Ó¢ĞÛÒÆ¶¯ËÙ¶È;
-	CC_SYNTHESIZE(INT32, _lv, Lv);//µÈ¼¶;
-	CC_SYNTHESIZE(float, attackScope, AttackScope);//¹¥»÷·¶Î§;
-	CC_SYNTHESIZE(INT32, attackPower, AttackPower);//¹¥»÷Á¦;
-	CC_SYNTHESIZE(INT32, skillPower, SkillPower);//¼¼ÄÜ¹¥»÷Á¦;
+	CC_SYNTHESIZE(float, _spd, Spd);//Ó¢ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½Ù¶ï¿½;
+	CC_SYNTHESIZE(INT32, _lv, Lv);//ï¿½È¼ï¿½;
+	CC_SYNTHESIZE(float, attackScope, AttackScope);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î§;
+	CC_SYNTHESIZE(INT32, attackPower, AttackPower);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+	CC_SYNTHESIZE(INT32, skillPower, SkillPower);//ï¿½ï¿½ï¿½Ü¹ï¿½ï¿½ï¿½ï¿½ï¿½;
 	CC_SYNTHESIZE(INT32, _energyLim, EnergyLim);
 	//CC_SYNTHESIZE(INT32, _energyCur, energyCur);
 	CC_SYNTHESIZE(bool, _isOnTheStage, IsOnTheStage);
 
 	CC_SYNTHESIZE(INT32, energyRecoverRate, EnergyRecoverRate);
-	CC_SYNTHESIZE(Hero*, _attackTarget, AttackTarget);//¹¥»÷Ä¿±ê;
-	CC_SYNTHESIZE(HP*, _hpBar, HpBar);//½¡¿µÖµ;
-	CC_SYNTHESIZE(HP*, _energyBar, EnergyBar);//ÄÜÁ¿Ìõ;
-	CC_SYNTHESIZE(int, _dir, Dir);//ÄÜÁ¿Ìõ;
+	CC_SYNTHESIZE(Hero*, _attackTarget, AttackTarget);//ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½;
+	CC_SYNTHESIZE(HP*, _hpBar, HpBar);//ï¿½ï¿½ï¿½ï¿½Öµ;
+	CC_SYNTHESIZE(HP*, _energyBar, EnergyBar);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+	CC_SYNTHESIZE(int, _dir, Dir);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
 
 	//CC_SYNTHESIZE(Vec2, _latestTargetPos, LatestTargetPos);
 	//Sprite* mySprite;
 	Sprite* myAttackSprite;
 public:
+
+	// cloneä½œä¸ºçº¯è™šå‡½æ•°ï¼Œç”±å…·ä½“è‹±é›„ç±»å®Œæˆå®Œæ•´çš„å…‹éš†å®ç°
+    virtual Hero* clone() const = 0;
+
 	virtual bool onTouchBegan(Touch* touch, Event* event);
 
 	virtual void onTouchEnded(Touch* touch, Event* event);
@@ -52,6 +59,62 @@ public:
 		_dir = -_dir;
 	}
 };
+
+// åŸå‹ç®¡ç†å™¨
+class HeroPrototypeRegistry {
+private:
+    // Map to store prototypes using tuple<heroType, camp, level> as key
+    // This allows quick access to specific hero configurations
+    std::map<std::tuple<int, Ecamp, int>, std::unique_ptr<Hero>> prototypes;
+    
+    // Private constructor for singleton pattern
+    HeroPrototypeRegistry() {
+        // Initialize prototypes for all possible hero configurations
+        for (int level = 1; level <= MAX_LEVEL; level++) {
+            // Create and configure blue team prototypes
+            auto dajiBlue = new HeroDaJi();
+            dajiBlue->setCamp(BLUE);
+            // Level up the prototype to desired level
+            for (int i = 1; i < level; i++) dajiBlue->upGrade();
+            registerHero(DAJIDAJI, BLUE, level, dajiBlue);
+            
+            // Similar initialization for other blue team heroes
+            // ... (Yase and Houyi initialization)
+
+            // Create and configure red team prototypes
+            auto dajiRed = new HeroDaJi();
+            dajiRed->setCamp(RED);
+            for (int i = 1; i < level; i++) dajiRed->upGrade();
+            registerHero(DAJIDAJI, RED, level, dajiRed);
+            
+            // Similar initialization for other red team heroes
+            // ... (Yase and Houyi initialization)
+        }
+    }
+
+public:
+    // Singleton instance accessor
+    static HeroPrototypeRegistry& getInstance() {
+        static HeroPrototypeRegistry instance;
+        return instance;
+    }
+
+    // Register a new hero prototype with specified configuration
+    void registerHero(int heroType, Ecamp camp, int level, Hero* prototype) {
+        prototypes[std::make_tuple(heroType, camp, level)] = std::unique_ptr<Hero>(prototype);
+    }
+
+    // Create a new hero by cloning the appropriate prototype
+    // Returns nullptr if no matching prototype is found
+    Hero* createHero(int heroType, Ecamp camp, int level) const {
+        auto key = std::make_tuple(heroType, camp, level);
+        auto it = prototypes.find(key);
+        if (it != prototypes.end()) {
+            return it->second->clone();
+        }
+        return nullptr;
+    }
+}; 
 
 
 #endif

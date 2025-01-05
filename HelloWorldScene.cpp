@@ -11,7 +11,7 @@
 #include "SimpleAudioEngine.h"
 #include <random>
 USING_NS_CC;
-// ¶¨ÒåÈ«¾ÖµÄÎ±Ëæ»úÊýÉú³ÉÆ÷ºÍ·Ö²¼
+// ï¿½ï¿½ï¿½ï¿½È«ï¿½Öµï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·Ö²ï¿½
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<> dis(1, 3);
@@ -55,20 +55,20 @@ bool HelloWorld::init()
     countdownLabel->setPosition(Vec2(480,580));
     this->addChild(countdownLabel,0);
 
-    // µ¹¼ÆÊ±³õÊ¼Öµ
+    // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ê¼Öµ
     countdownValue = 9;
 
-    // ÑÓÊ±1Ãëºó¿ªÊ¼µ¹¼ÆÊ±
+    // ï¿½ï¿½Ê±1ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê±
     this->scheduleOnce([this](float dt) {
-        // Ã¿¸ô1Ãë¸üÐÂÒ»´Îµ¹¼ÆÊ±
+        // Ã¿ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Îµï¿½ï¿½ï¿½Ê±
         this->schedule([this](float dt) {
             countdownValue--;
             if (countdownValue >= 0) {
-                // ¸üÐÂLabelÏÔÊ¾
+                // ï¿½ï¿½ï¿½ï¿½Labelï¿½ï¿½Ê¾
                 countdownLabel->setString(StringUtils::format("%d", countdownValue));
             }
             else {
-                // µ¹¼ÆÊ±½áÊø£¬È¡Ïûschedule
+                // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½schedule
                 this->unschedule("countdown");
             }
             }, 1.0f, "countdown");
@@ -147,7 +147,7 @@ bool HelloWorld::init()
     mouseListener->onMouseUp = CC_CALLBACK_1(HelloWorld::onMouseUp, this);
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(mouseListener, this);
-    //Ð¡Ð¡Ó¢ÐÛµÈ¼¶
+    //Ð¡Ð¡Ó¢ï¿½ÛµÈ¼ï¿½
     lvLabel = Label::createWithSystemFont("lv:" + std::to_string(myMiniHero->getLv()), "Arial", 20);
     lvLabel->setPosition(Vec2(50, 100));
     addChild(lvLabel);
@@ -170,13 +170,13 @@ void HelloWorld::disPlayMoney()
 
     this->label = Label::createWithTTF("money:" + std::to_string(this->myMiniHero->getMoney()), "fonts/Marker Felt.ttf", 30);
     
-    // ÉèÖÃ Label µÄÎ»ÖÃ
+    // ï¿½ï¿½ï¿½ï¿½ Label ï¿½ï¿½Î»ï¿½ï¿½
     label->setPosition(Vec2(900, 580));
 
-    // ÉèÖÃÎÄ±¾ÑÕÉ«
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½É«
     label->setColor(Color3B::WHITE);
 
-    // ½« Label Ìí¼Óµ½³¡¾°
+    // ï¿½ï¿½ Label ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½
     this->addChild(label, 1);
     std::function<void(float)> screenMoney = [this](float) {
         this->getLable()->setString("money:" + std::to_string(this->myMiniHero->getMoney()));
@@ -314,7 +314,7 @@ void HelloWorld::startGame1(float ft) {
         com->recvHeroMessage();
         for (int i = 0; i < 56; i++)
             _message_[i] = com->HeroMessage[i];
-        ////ÕâÀïÐ´Èç¹ûÊÇÁªÍømessageÔõÃ´±ä»¯
+        ////ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½messageï¿½ï¿½Ã´ï¿½ä»¯
     }
 
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame2, this), 2.0, "startGame2");
@@ -322,132 +322,81 @@ void HelloWorld::startGame1(float ft) {
 }
 
 void HelloWorld::startGame2(float ft) {
-    for (int i = 0; i < 28; i++)
-    {
-        //
+    // Get the singleton instance of prototype registry
+    auto& registry = HeroPrototypeRegistry::getInstance();
+
+    // Create opponent (blue team) heroes
+    for (int i = 0; i < 28; i++) {
+        Hero* newHero = nullptr;
+        int heroType;
+        // Extract level information from message
+        int level = _message_[2 * i + 1] - '0';
+        
+        // Convert character code to hero type
         switch (_message_[2 * i]) {
         case '1':
-        {auto Hero1 = HeroDaJi::create(BLUE, this);
-        //Hero1->setScale(0.5);
-        Hero1->setIsOnTheStage(true);
-        for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
-            Hero1->upGrade();
-        Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
-
-        //this->myMiniHero->getEmptyWait()->_phero = Hero1;
-        this->addChild(Hero1);
-        Hero1->setPosition(a);
-        Hero1->setDragable(false);
-        _heroes.push_back(Hero1);
-        break; }
-        case '2': {
-            auto Hero1 = HeroYase::create(BLUE, this);
-            //Hero1->setScale(0.5);
-            Hero1->setIsOnTheStage(true);
-            for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
-                Hero1->upGrade();
-            Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
-
-            //this->myMiniHero->getEmptyWait()->_phero = Hero1;
-            this->addChild(Hero1);
-            Hero1->setPosition(a);
-            Hero1->setDragable(false);
-            _heroes.push_back(Hero1);
-            break; }
+            heroType = DAJIDAJI;
+            break;
+        case '2':
+            heroType = YASEYASE;
+            break;
         case '3':
-        {auto Hero1 = HeroHouYi::create(BLUE, this);
-        //Hero1->setScale(0.5);
-        Hero1->setIsOnTheStage(true);
-        for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
-            Hero1->upGrade();
-        Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
-
-        //this->myMiniHero->getEmptyWait()->_phero = Hero1;
-        this->addChild(Hero1);
-        Hero1->setPosition(a);
-        Hero1->setDragable(false);
-        _heroes.push_back(Hero1);
-        break; }
-       
+            heroType = HOUYIHOUYI;
+            break;
+        default:
+            continue;
         }
 
+        // Clone hero from prototype registry with desired configuration
+        newHero = registry.createHero(heroType, BLUE, level);
+        
+        if (newHero) {
+            // Configure the cloned hero
+            newHero->setIsOnTheStage(true);
+            // Set position based on battle grid
+            newHero->setPosition(Vec2(myMiniHero->opGrid_Battle[i]._x, 
+                                    myMiniHero->opGrid_Battle[i]._y));
+            newHero->setDragable(false);
+            
+            // Add hero to scene and tracking vector
+            this->addChild(newHero);
+            _heroes.push_back(newHero);
+        }
     }
-    for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
-    {
-        //Èç¹ûÊÇÎÒµÄÓ¢ÐÛ
-        if (it->_phero != nullptr)
-        {
-            int _name = (it->_phero)->getTag();
-            int _level = (it->_phero)->getLv();
+
+    // Create player (red team) heroes
+    for (auto it = myMiniHero->Grid_Battle.begin(); 
+         it < myMiniHero->Grid_Battle.end(); it++) {
+        if (it->_phero != nullptr) {
+            // Get existing hero's type and level
+            int heroType = (it->_phero)->getTag();
+            int level = (it->_phero)->getLv();
+            // Remove the old hero instance
             it->_phero->removeFromParent();
-            switch (_name)
-            {
 
-            case DAJIDAJI:
-            {auto Hero1 = HeroDaJi::create(RED, this);
-            //Hero1->setScale(0.5);
-            Hero1->setIsOnTheStage(true);
-            Hero1->setDragable(false);
-            Vec2 aa = Vec2(it->_x, it->_y);
-            it->_phero = Hero1;
-            this->addChild(Hero1);
-            Hero1->setPosition(aa);
-            _heroes.push_back(Hero1);
-            for (int i = 1; i < _level; i++)
-            {
-                Hero1->upGrade();
-            }
-            break;
-            }
-            case YASEYASE: {auto Hero1 = HeroYase::create(RED, this);
-                //Hero1->setScale(0.5);
-                Hero1->setIsOnTheStage(true);
-                Hero1->setDragable(false);
-                Vec2 aa = Vec2(it->_x, it->_y);
-                it->_phero = Hero1;
-                this->addChild(Hero1);
-                Hero1->setPosition(aa);
-                _heroes.push_back(Hero1);
-                for (int i = 1; i < _level; i++)
-                {
-                    Hero1->upGrade();
-                }
-                break;
-            }
-            case HOUYIHOUYI:
-            {   auto Hero1 = HeroHouYi::create(RED, this);
-            //Hero1->setScale(0.5);
-            Hero1->setIsOnTheStage(true);
-            Hero1->setDragable(false);
-            Vec2 aa = Vec2(it->_x, it->_y);
-            it->_phero = Hero1;
-            this->addChild(Hero1);
-            Hero1->setPosition(aa);
-            _heroes.push_back(Hero1);
-            for (int i = 1; i < _level; i++)
-            {
-                Hero1->upGrade();
-            }
-            break;
+            // Clone new hero from prototype registry
+            Hero* newHero = registry.createHero(heroType, RED, level);
 
-            }
+            if (newHero) {
+                // Configure the cloned hero
+                newHero->setIsOnTheStage(true);
+                newHero->setDragable(false);
+                newHero->setPosition(Vec2(it->_x, it->_y));
+
+                // Update grid reference and add to scene
+                it->_phero = newHero;
+                this->addChild(newHero);
+                _heroes.push_back(newHero);
             }
         }
     }
 
-    for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
-    {
-        //Èç¹ûÊÇÎÒµÄÓ¢ÐÛ
-        if (it->_phero != nullptr)
-        {
-            _heroes.push_back(it->_phero);
-        }
-    }
-    this->schedule(CC_CALLBACK_1(HelloWorld::checkWinLose, this), 0.05f, "checkWinLose");
-
+    // Schedule win/lose condition check
+    this->schedule(CC_CALLBACK_1(HelloWorld::checkWinLose, this), 
+                  0.05f, "checkWinLose");
 }
 int HelloWorld::cheak() {
-    //ÎÒ»¹Ã»ÓÐËÀ¹â
+    //Ò»Ã»
     int win=2;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
@@ -457,7 +406,7 @@ int HelloWorld::cheak() {
             break;
         }
     }
-    if (win == 2)//ÎÒËÀ¹âÁË
+    if (win == 2)//
         return 0;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
@@ -467,22 +416,22 @@ int HelloWorld::cheak() {
             break;
         }
     }
-    if (win == 0)//¶Ô·½ËÀ¹âÁË
+    if (win == 0)//
         return 1;
     return 2;
 }
 void HelloWorld::checkWinLose(float ft) {
     int c = cheak();
    
-    if (c == 0) {//±¾·½Ó¢ÐÛËÀ¹âÁË
-        // ÊäÓ®´¦ÀíÂß¼­
+    if (c == 0) {//
+        // 
         myMiniHero->getHpBar()->setCurrentState(myMiniHero->getHpBar()->getCurrentState() - 4);
         myMiniHero->getHpBar()->updatePercent();
        
 
 
         this->unschedule("checkWinLose");
-        //Ó¢ÐÛ»Ö¸´Âú×´Ì¬
+        //Ó¢Û»Ö¸×´Ì¬
         for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
         {
             if (it->_phero)
@@ -496,7 +445,7 @@ void HelloWorld::checkWinLose(float ft) {
         audio->playEffect("endgame_lose.mp3", false);
         audio->setEffectsVolume(1.0f);
 
-        //²¥·ÅÒôÐ§£º
+        //
 
 
         myMiniHero->setLv(myMiniHero->getLv() + 1);
@@ -506,7 +455,7 @@ void HelloWorld::checkWinLose(float ft) {
 
         //  this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0, "startGame");
         this->scheduleOnce([this](float dt) {
-            // ÔÚLambda±í´ïÊ½ÖÐ´´½¨¾«Áé
+            // ï¿½ï¿½Lambdaï¿½ï¿½ï¿½ï¿½Ê½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             auto sprite = Sprite::create("Defeat.jpg");
             sprite->setScaleX(1.5f);
             sprite->setScaleY(1.6f);
@@ -514,23 +463,23 @@ void HelloWorld::checkWinLose(float ft) {
             sprite->setPosition(Vec2(0, 0));
             this->addChild(sprite, 0);
 
-            // ÑÓÊ±2ÃëºóÖ´ÐÐLambda±í´ïÊ½
+            // ï¿½ï¿½Ê±2ï¿½ï¿½ï¿½Ö´ï¿½ï¿½Lambdaï¿½ï¿½ï¿½ï¿½Ê½
             this->scheduleOnce([this, sprite](float dt) {
-                // ÔÚLambda±í´ïÊ½ÖÐÒÆ³ý¾«Áé
+                // ï¿½ï¿½Lambdaï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Æ³ï¿½ï¿½ï¿½ï¿½ï¿½
                 this->removeChild(sprite);
                 }, 2.0f, "removeSprite");
             }, 1.0f, "createSprite");
         Gamewinorlose(false);
 
-        // ±¾ÂÖÓÎÏ·ÒÑ¾­½áÊø
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½
 
     }
-    else if (c == 1) {//¶Ô·½Ó¢ÐÛËÀ¹âÁË
-        // ÊäÓ®´¦ÀíÂß¼­
+    else if (c == 1) {//ï¿½Ô·ï¿½Ó¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        // ï¿½ï¿½Ó®ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
         this->unschedule("checkWinLose");
-        // ±¾ÂÖÓÎÏ·ÒÑ¾­½áÊø
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½
 
-        //Ó¢ÐÛ»Ö¸´Âú×´Ì¬
+        //Ó¢ï¿½Û»Ö¸ï¿½ï¿½ï¿½×´Ì¬
         for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
         {
             if (it->_phero)
@@ -550,16 +499,16 @@ void HelloWorld::checkWinLose(float ft) {
         myMiniHero->setMoney(myMiniHero->getMoney() + 3);
 
         this->scheduleOnce([this](float dt) {
-            // ÔÚLambda±í´ïÊ½ÖÐ´´½¨¾«Áé
+            // ï¿½ï¿½Lambdaï¿½ï¿½ï¿½ï¿½Ê½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             auto sprite = Sprite::create("Victory.jpg");
             sprite->setScaleX(1.5f);
             sprite->setScaleY(1.6f);
             sprite->setAnchorPoint(Vec2(0, 0));
             sprite->setPosition(Vec2(0, 0));
             this->addChild(sprite, 0);
-            // ÑÓÊ±2ÃëºóÖ´ÐÐLambda±í´ïÊ½
+            // ï¿½ï¿½Ê±2ï¿½ï¿½ï¿½Ö´ï¿½ï¿½Lambdaï¿½ï¿½ï¿½ï¿½Ê½
             this->scheduleOnce([this, sprite](float dt) {
-                // ÔÚLambda±í´ïÊ½ÖÐÒÆ³ý¾«Áé
+                // ï¿½ï¿½Lambdaï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Æ³ï¿½ï¿½ï¿½ï¿½ï¿½
                 this->removeChild(sprite);
                 }, 2.0f, "removeSprite");
             }, 1.0f, "createSprite");
@@ -567,8 +516,8 @@ void HelloWorld::checkWinLose(float ft) {
 
     }
     else {
-        // ÓÎÏ·»¹Î´²úÉúÊ¤¸º
-       // CCLOG("ÓÎÏ·»¹Î´²úÉúÊ¤¸º");
+        // ï¿½ï¿½Ï·ï¿½ï¿½Î´ï¿½ï¿½ï¿½ï¿½Ê¤ï¿½ï¿½
+       // CCLOG("ï¿½ï¿½Ï·ï¿½ï¿½Î´ï¿½ï¿½ï¿½ï¿½Ê¤ï¿½ï¿½");
     }
 }
 
@@ -591,7 +540,7 @@ void HelloWorld::Gamewinorlose(int c) {
                 _AiMiniHero[i]->setMaxOnBoard(_AiMiniHero[i]->getMaxOnBoard() + 1);
             _AiMiniHero[i]->setMoney(_AiMiniHero[i]->getMoney() + dis(gen));
         }
-        //¼Ó½ð±Ò¡¢Éý¼¶
+        //ï¿½Ó½ï¿½Ò¡ï¿½ï¿½ï¿½ï¿½ï¿½
     }
     else if (_player == 2)
     {
@@ -601,10 +550,10 @@ void HelloWorld::Gamewinorlose(int c) {
             Director::getInstance()->replaceScene(scene);
 
         }
-        //ÍË³ö»òÕß¼ÌÐø
+        //ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½
         _order++;
     }
-    //ÏÔÊ¾ÊäÓ®
+    //ï¿½ï¿½Ê¾ï¿½ï¿½Ó®
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::resetGame, this), 3.0f, "resetGame");
 }
 
@@ -634,9 +583,9 @@ void HelloWorld::resetGame(float dt) {
             valid[i] = 1;
         }
     
-    // Çå³ýÖ®Ç°µÄÓÎÏ·ÄÚÈÝ
+    // ï¿½ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ï¿½
    // this->removeAllChildren();
-    /////ÏÈ°ÑËùÓÐÉÏ³¡Ó¢ÐÛÉèÎª²»¿É¼ûºÍËÀÍö
+    /////ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï³ï¿½Ó¢ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½É¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
         //
@@ -644,18 +593,18 @@ void HelloWorld::resetGame(float dt) {
         (*it)->setVisible(false);
         (*it)->setIsDead(true);
     }
-    ////ÔÙ°ÑµÐÈËµÄ¾«ÁéÒÆ³ý
+    ////ï¿½Ù°Ñµï¿½ï¿½ËµÄ¾ï¿½ï¿½ï¿½ï¿½Æ³ï¿½
    for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
        if ((*it)->getCamp() == BLUE)
            this->removeChild(*it);
     }
-   //Çå³ý³¡ÉÏÓ¢ÐÛµÄÊý×é
+   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¢ï¿½Ûµï¿½ï¿½ï¿½ï¿½ï¿½
     _heroes.clear();
-    //¶ÔÓÚÎÒµÄÉÏ³¡Ó¢ÐÛ£¬½«ËûÃÇ»Ö¸´£¨Î»ÖÃ¡¢ËÀÍö¡¢ÒþÉí£©
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½Ï³ï¿½Ó¢ï¿½Û£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç»Ö¸ï¿½ï¿½ï¿½Î»ï¿½Ã¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
     {
-        //Èç¹ûÊÇÎÒµÄÓ¢ÐÛ
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½Ó¢ï¿½ï¿½
         if (it->_phero != nullptr)
         {
             it->_phero->setIsDead(false);
@@ -663,19 +612,19 @@ void HelloWorld::resetGame(float dt) {
             it->_phero->setPosition(Vec2(it->_x, it->_y));
         }
     }
-        // ÖØÐÂ³õÊ¼»¯ÓÎÏ·
+        // ï¿½ï¿½ï¿½Â³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ï·
    // reinitGame();
    countdownValue = 9;
    this->scheduleOnce([this](float dt) {
-       // Ã¿¸ô1Ãë¸üÐÂÒ»´Îµ¹¼ÆÊ±
+       // Ã¿ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Îµï¿½ï¿½ï¿½Ê±
        this->schedule([this](float dt) {
            countdownValue--;
            if (countdownValue >= 0) {
-               // ¸üÐÂLabelÏÔÊ¾
+               // ï¿½ï¿½ï¿½ï¿½Labelï¿½ï¿½Ê¾
                countdownLabel->setString(StringUtils::format("%d", countdownValue));
            }
            else {
-               // µ¹¼ÆÊ±½áÊø£¬È¡Ïûschedule
+               // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½schedule
                this->unschedule("countdown");
            }
            }, 1.0f, "countdown");
@@ -685,7 +634,7 @@ void HelloWorld::resetGame(float dt) {
    menu->setEnabled(true);
   enableMouseEvents();
    myMiniHero->setPosition(Vec2(120, 120));
-    // ÑÓÊ±Ò»¶ÎÊ±¼äºó¿ªÊ¼ÐÂµÄÒ»¾Ö
+    // ï¿½ï¿½Ê±Ò»ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ê¼ï¿½Âµï¿½Ò»ï¿½ï¿½
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0f, "restartGame");
 }
 
@@ -742,7 +691,7 @@ void HelloWorld::OnMouseMove(Event* event) {
 
 void HelloWorld::buyExp(Ref* obj)
 {
-    //Ã¿ÂòÒ»´Î»¨·ÑÁ½¸ö½ð±Ò£¬ÕÇ5µã¾­Ñé
+    //Ã¿ï¿½ï¿½Ò»ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò£ï¿½ï¿½ï¿½5ï¿½ã¾­ï¿½ï¿½
     if (myMiniHero->getMoney() >= 2) {
         myMiniHero->setMoney(myMiniHero->getMoney() - 2);
         myMiniHero->takeExp(5);

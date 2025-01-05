@@ -22,8 +22,8 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     //myAttackSprite = Sprite::create("MinatoStand.png");
     setPresentScene(scene);
     //mySprite->setScale(150);
-    //float _attackTargetWidth = 150.0f; // Ä¿±ê¿í¶È
-    //float _attackTargetHeight = 0.0f; // Ä¿±ê¸ß¶È
+    //float _attackTargetWidth = 150.0f; // Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½
+    //float _attackTargetHeight = 0.0f; // Ä¿ï¿½ï¿½ß¶ï¿½
     float scaleFactorX = 120 / this->getContentSize().width;// scalingWidth
     float scaleFactorY = 120 / this->getContentSize().height;// scalingHeight
     this->setScaleX(scaleFactorX);
@@ -59,7 +59,7 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     SkillLogic(); 
    
     //decideToAttack();
-    //ÑªÌõ¡¢À¶Ìõ
+    //Ñªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     
     this->addChild(this->getHpBar());
     this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
@@ -99,7 +99,7 @@ void HeroYase::upDateMoving()
             auto heroPosition = this->getPosition();
             auto enemyPosition = _attackTarget->getPosition();
 
-            // ¼ÆËãÁ½µã¼äµÄ½Ç¶È
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½Ç¶ï¿½
             float deltaX = enemyPosition.x - heroPosition.x;
             int curDir = deltaX > 0 ? 1 : -1;
 
@@ -125,7 +125,7 @@ void HeroYase::SkillLogic() {
             (this->getEnergyBar())->getMaxState()))
         {
             double dis = -1;
-            //¼¼ÄÜÂß¼­
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
             HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
             Hero* farestEnermy = nullptr;
             for (auto it = Scene->_heroes.begin(); it != Scene->_heroes.end(); it++) {
@@ -137,12 +137,12 @@ void HeroYase::SkillLogic() {
             }
             if (farestEnermy != nullptr && getIsOnTheStage()) {
                 Vector<SpriteFrame*> animSkillFrames;
-                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-                animSkillFrames.pushBack(SpriteFrame::create("flash.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
+                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+                animSkillFrames.pushBack(SpriteFrame::create("flash.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
 
 
-                auto animationSkill = Animation::createWithSpriteFrames(animSkillFrames, 0.15f); // 0.1fÎªÃ¿Ö¡³ÖÐøÊ±¼ä
+                auto animationSkill = Animation::createWithSpriteFrames(animSkillFrames, 0.15f); // 0.1fÎªÃ¿Ö¡ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
                 auto animateSkill = Animate::create(animationSkill);
                 auto Skill = Spawn::create(animateSkill, nullptr, nullptr);
                 this->runAction(Skill);
@@ -168,23 +168,23 @@ void HeroYase::SkillLogic() {
 }
 
 void HeroYase::initWalkingAnimation(Vec2 destination) {
-    Vector<SpriteFrame*> animFrames; // ¶¯»­Ö¡¼¯ºÏ
+    Vector<SpriteFrame*> animFrames; // ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½
 
-    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
 
   
     auto animation = Animation::createWithSpriteFrames(animFrames, 0.125f);
     auto animate = Animate::create(animation);
     auto repeatForever = RepeatForever::create(animate);
     this->stopAllActions();
-    this->runAction(repeatForever);  // ¿ªÊ¼²¥·ÅÐÐ×ß¶¯»­
+    this->runAction(repeatForever);  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¶ï¿½ï¿½ï¿½
 
     auto Time = (this->getPosition().distance((_attackTarget)->getPosition())) / _spd;
     auto move = MoveTo::create(Time, destination);
@@ -192,18 +192,18 @@ void HeroYase::initWalkingAnimation(Vec2 destination) {
 }
 
 
-//Ò»Ö±´ò£¬¸østop
+//Ò»Ö±ï¿½ò£¬¸ï¿½stop
 void HeroYase::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
     
-    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack1.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
-    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack2.png", Rect(0, 0, 400, 400))); // Ìí¼ÓÖ¡
+    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack1.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
+    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack2.png", Rect(0, 0, 400, 400))); // ï¿½ï¿½ï¿½ï¿½Ö¡
 
-    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fÎªÃ¿Ö¡³ÖÐøÊ±¼ä
+    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fÎªÃ¿Ö¡ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
     auto animateAttack = Animate::create(animationAttack);
     auto ATTACK = Spawn::create(animateAttack, nullptr, nullptr);
 
-    //ÆÕ¹¥´òÒ»ÏÂÊÜÉË
+    //ï¿½Õ¹ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     auto attackSequence = Spawn::create(ATTACK, this->hitTarget(), nullptr);
     auto repeatAttackAndFire = RepeatForever::create(attackSequence);
     this->runAction(repeatAttackAndFire);
@@ -221,7 +221,7 @@ void HeroYase::performAttack() {
 }
 
 CallFunc* HeroYase::hitTarget() {
-    //ÊÜÉËÂß¼­
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
     auto fireArrow = CallFunc::create([this]() {
         auto audio = CocosDenshion::SimpleAudioEngine::getInstance();
         audio->playEffect("Base_Attack_Minato.mp3", false);
@@ -250,7 +250,7 @@ CallFunc* HeroYase::hitTarget() {
 }
 
 
-////ÊÜÉËÂß¼­
+////ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
 //CallFunc* HeroYase::hitTarget() {
 //    auto fireArrow = CallFunc::create([this]()
 //        {
@@ -261,7 +261,7 @@ CallFunc* HeroYase::hitTarget() {
 //        (this->getEnergyBar())->getMaxState()))
 //    {
 //        damageDelta = this->getAttackPower();
-//        //¼¼ÄÜÂß¼­
+//        //ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
 //        HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
 //        Hero* farestEnermy;
 //        double dis = -1;
@@ -282,8 +282,8 @@ CallFunc* HeroYase::hitTarget() {
 //        size = 40;
 //        damageDelta = this->getAttackPower();
 //    }
-//    auto arrowSprite = Sprite::create("kuwu.png"); // ´´½¨¼ýÊ¸¾«Áé
-//    arrowSprite->setPosition(this->getPosition()); // ÉèÖÃ¼ýÊ¸µÄ³õÊ¼Î»ÖÃ
+//    auto arrowSprite = Sprite::create("kuwu.png"); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¸ï¿½ï¿½ï¿½ï¿½
+//    arrowSprite->setPosition(this->getPosition()); // ï¿½ï¿½ï¿½Ã¼ï¿½Ê¸ï¿½Ä³ï¿½Ê¼Î»ï¿½ï¿½
 //
 //    auto spriteSize = this->getContentSize();
 //    arrowSprite->setScale(spriteSize.width / (size * arrowSprite->getContentSize().width),
@@ -293,12 +293,12 @@ CallFunc* HeroYase::hitTarget() {
 //
 //        return nullptr;
 //    }
-//    auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // ¼ýÊ¸ÒÆ¶¯µ½Ä¿±êÎ»ÖÃ
+//    auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // ï¿½ï¿½Ê¸ï¿½Æ¶ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½ï¿½
 //    auto removeArrow = CallFunc::create([arrowSprite, this, damageDelta]() {
-//        //arrowSprite->removeFromParent(); // ÒÆ¶¯Íê³ÉºóÒÆ³ý¼ýÊ¸
+//        //arrowSprite->removeFromParent(); // ï¿½Æ¶ï¿½ï¿½ï¿½Éºï¿½ï¿½Æ³ï¿½ï¿½ï¿½Ê¸
 //        if (arrowSprite && _attackTarget && arrowSprite->getBoundingBox().intersectsRect((_attackTarget->getBoundingBox()))) {
-//            arrowSprite->removeFromParent(); // ÒÆ³ý¼ýÊ¸
-//            //arrowSprite = nullptr; // Çå¿Õ¼ýÊ¸ÒýÓÃ
+//            arrowSprite->removeFromParent(); // ï¿½Æ³ï¿½ï¿½ï¿½Ê¸
+//            //arrowSprite = nullptr; // ï¿½ï¿½Õ¼ï¿½Ê¸ï¿½ï¿½ï¿½ï¿½
 //            _attackTarget->getHpBar()->changeStateBy(-damageDelta);
 //            if (getCamp() == BLUE)
 //            {
@@ -323,24 +323,24 @@ CallFunc* HeroYase::hitTarget() {
 //    auto arrowSequence = Sequence::create(moveArrow, removeArrow, nullptr);
 //    if (this->isVisible())
 //    {
-//        arrowSprite->runAction(arrowSequence); // Ö´ÐÐ¼ýÊ¸¶¯×÷
+//        arrowSprite->runAction(arrowSequence); // Ö´ï¿½Ð¼ï¿½Ê¸ï¿½ï¿½ï¿½ï¿½
 //        dynamic_cast<HelloWorld*>(this->getPresentScene())->addChild(arrowSprite);
 //    }
 //        });
 //    return fireArrow;
 //}
 void HeroYase::displayHeroLevel(int level) {
-    // ´´½¨Ò»¸ö Label ÓÃÓÚÏÔÊ¾µÈ¼¶
+    // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ Label ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½È¼ï¿½
     this->label = Label::createWithTTF("lv."+std::to_string(level), "fonts/Marker Felt.ttf", 24);
 
-    // ÉèÖÃ Label µÄÎ»ÖÃ
+    // ï¿½ï¿½ï¿½ï¿½ Label ï¿½ï¿½Î»ï¿½ï¿½
     label->setPosition(Vec2(Vec2(this->getContentSize().width / 2,
         this->getContentSize().height + 30 - label->getContentSize().height)));
 
-    // ÉèÖÃÎÄ±¾ÑÕÉ«
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½É«
     label->setColor(Color3B::WHITE);
 
-    // ½« Label Ìí¼Óµ½³¡¾°
+    // ï¿½ï¿½ Label ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½
     this->addChild(label, 1);
 }
 void HeroYase::upGrade()
@@ -366,4 +366,74 @@ void HeroYase::upGrade()
 
     this->addChild(this->getEnergyBar());
     this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
+}
+
+Hero* HeroYase::clone() const {
+    // 1. åˆ›å»ºæ–°çš„å¦²å·±å®žä¾‹
+    auto newHero = new HeroYase();
+
+    // 2. å¤åˆ¶åŸºæœ¬å±žæ€§
+    newHero->setLv(this->getLv());
+    newHero->setCamp(this->getCamp());
+    newHero->setIsDead(this->getIsDead());
+    newHero->setIsHurt(this->getIsHurt());
+    newHero->setIsMoving(this->getIsMoving());
+    newHero->setIsOnTheStage(this->getIsOnTheStage());
+    
+    // 3. å¤åˆ¶æˆ˜æ–—å±žæ€§
+    newHero->setHpLim(this->getHpLim());
+    newHero->setSpd(this->getSpd());
+    newHero->setAttackScope(this->getAttackScope());
+    newHero->setAttackPower(this->getAttackPower());
+    newHero->setSkillPower(this->getSkillPower());
+    newHero->setEnergyLim(this->getEnergyLim());
+    newHero->setEnergyRecoverRate(this->getEnergyRecoverRate());
+    newHero->setDir(this->getDir());
+
+    // 4. å¤åˆ¶UIæ ‡ç­¾
+    if (this->getLable()) {
+        auto newLabel = Label::createWithTTF(
+            this->getLable()->getString(),
+            this->getLable()->getTTFConfig().fontFilePath,
+            this->getLable()->getTTFConfig().fontSize
+        );
+        newLabel->setPosition(this->getLable()->getPosition());
+        newLabel->setScale(this->getLable()->getScale());
+        newHero->setLable(newLabel);
+    }
+
+    // 5. å¤åˆ¶è¡€æ¡
+    if (this->getHpBar()) {
+        auto newHpBar = HP::create();
+        newHpBar->setMaxValue(this->getHpBar()->getMaxValue());
+        newHpBar->setCurrentState(this->getHpBar()->getCurrentState());
+        newHpBar->setPosition(this->getHpBar()->getPosition());
+        newHpBar->setScale(this->getHpBar()->getScale());
+        newHero->setHpBar(newHpBar);
+    }
+
+    // 6. å¤åˆ¶èƒ½é‡æ¡
+    if (this->getEnergyBar()) {
+        auto newEnergyBar = HP::create();
+        newEnergyBar->setMaxValue(this->getEnergyBar()->getMaxValue());
+        newEnergyBar->setCurrentState(this->getEnergyBar()->getCurrentState());
+        newEnergyBar->setPosition(this->getEnergyBar()->getPosition());
+        newEnergyBar->setScale(this->getEnergyBar()->getScale());
+        newHero->setEnergyBar(newEnergyBar);
+    }
+
+    // 7. å¤åˆ¶ç²¾çµå±žæ€§
+    newHero->setScale(this->getScale());
+    newHero->setPosition(this->getPosition());
+    newHero->setRotation(this->getRotation());
+    newHero->setVisible(this->isVisible());
+    newHero->setOpacity(this->getOpacity());
+
+    // 8. å¤åˆ¶dragableSpriteç›¸å…³å±žæ€§
+    newHero->setDragable(this->isDragable());
+    
+    // æ³¨æ„ï¼šä¸å¤åˆ¶ _attackTargetï¼Œå› ä¸ºè¿™æ˜¯æˆ˜æ–—æ—¶çš„åŠ¨æ€ç›®æ ‡
+    newHero->setAttackTarget(nullptr);
+
+    return newHero;
 }

@@ -1,167 +1,107 @@
-#include"AiminiHero.h"
-#include<ctime>
-#include<vector>
-#include<algorithm>
-#include<iostream>
-#include"const.h" 
+/* Refactored by Strategy Pattern */
+#include "AiminiHero.h"
 
-// 1. AI行为策略接口
-class IAiBehaviorStrategy {
-public:
-    virtual void initialize(AiminiHero* hero) = 0;
-    virtual void preStageLogic(AiminiHero* hero, bool& isAdd) = 0;
-    virtual void afterStageLogic(AiminiHero* hero) = 0;
-    virtual void onBattleEnd(AiminiHero* hero, bool isWin) = 0;
-    virtual void adjustStrategy(AiminiHero* hero, const BattleStats& stats) = 0;
-    virtual std::string getStrategyName() const = 0;
-    virtual ~IAiBehaviorStrategy() = default;
-};
-
-// 2. 具体策略类
-class AggressiveStrategy : public IAiBehaviorStrategy {
-public:
-    void initialize(AiminiHero* hero) override {
-        hero->setMoney(100);
-        hero->setExp(0);
-        hero->setMaxOnBoard(5);
-        hero->setLevel(1);
-        
-        std::vector<HeroMessage> attackHeroes = {
-            {"Warrior", 100, HeroType::ATTACKER},
-            {"Assassin", 80, HeroType::ATTACKER},
-            {"Berserker", 120, HeroType::ATTACKER}
-        };
-        hero->setInitialHeroes(attackHeroes);
-    }
-
-    void preStageLogic(AiminiHero* hero, bool& isAdd) override {
-        // 激进策略：优先升级和购买攻击型英雄
-        if (shouldUpgrade(hero)) {
-            performUpgrade(hero);
-            isAdd = true;
-        }
-        
-        if (shouldBuyHero(hero)) {
-            purchaseAttackHero(hero);
-            isAdd = true;
-        }
-    }
-
-    void afterStageLogic(AiminiHero* hero) override {
-        optimizeFormation(hero);
-        sellWeakHeroes(hero);
-        adjustTeamComposition(hero);
-    }
-
-    void onBattleEnd(AiminiHero* hero, bool isWin) override {
-        if (isWin) {
-            increaseBattleAggression(hero);
-        } else {
-            adjustAfterLoss(hero);
-        }
-    }
-
-    void adjustStrategy(AiminiHero* hero, const BattleStats& stats) override {
-        if (stats.winRate < 0.3f) {
-            reduceAggression(hero);
-        } else if (stats.winRate > 0.7f) {
-            increaseAggression(hero);
-        }
-    }
-
-    std::string getStrategyName() const override {
-        return "Aggressive";
-    }
-
-private:
-    bool shouldUpgrade(AiminiHero* hero) {
-        return hero->getMoney() >= 8 && hero->getLevel() < 5;
-    }
-
-    void performUpgrade(AiminiHero* hero) {
-        hero->setMoney(hero->getMoney() - 4);
-        hero->setLevel(hero->getLevel() + 1);
-    }
-
-    bool shouldBuyHero(AiminiHero* hero) {
-        return hero->getMoney() >= 4 && 
-               hero->getHeroesInBattle().size() < hero->getMaxOnBoard();
-    }
-
-    // ... 其他辅助方法实现
-};
-
-class DefensiveStrategy : public IAiBehaviorStrategy {
-    // 类似AggressiveStrategy的实现，但侧重防守
-};
-
-class BalancedStrategy : public IAiBehaviorStrategy {
-    // 平衡型策略实现
-};
-
-// 3. 重构后的AiminiHero类
-class AiminiHero : public Hero {
-private:
-    std::unique_ptr<IAiBehaviorStrategy> _strategy;
-    BattleStats _battleStats;
-    std::vector<HeroMessage> _heroesInBattle;
-    std::vector<HeroMessage> _heroesOutBattle;
+// Implementation of AggressiveStrategy - A concrete strategy focusing on offensive tactics
+void AggressiveStrategy::initialize(AiminiHero* hero) {
+    // Initialize hero with aggressive stats - higher money for buying attack units
+    hero->setMoney(100);
+    hero->setExp(0);
+    hero->setMaxOnBoard(5);
+    hero->setLevel(1);
     
-    int _money;
-    int _exp;
-    int _maxOnBoard;
-    int _level;
+    // Set up initial hero roster focused on high damage dealers
+    std::vector<HeroMessage> attackHeroes = {
+        {"Warrior", 100, HeroType::ATTACKER},
+        {"Assassin", 80, HeroType::ATTACKER}, 
+        {"Berserker", 120, HeroType::ATTACKER}
+    };
+    hero->setInitialHeroes(attackHeroes);
+}
+
+// Implementation of DefensiveStrategy - A concrete strategy focusing on defensive tactics
+void DefensiveStrategy::initialize(AiminiHero* hero) {
+    // Initialize hero with defensive stats - extra money for buying tank units
+    hero->setMoney(120);
+    hero->setExp(0);
+    hero->setMaxOnBoard(4);
+    hero->setLevel(1);
     
-public:
-    explicit AiminiHero(int AiID) 
-        : _money(0), _exp(0), _maxOnBoard(0), _level(1) {
-        _battleStats = {0, 0, 0, 0.0f};
-    }
+    // Set up initial hero roster focused on tanks and supports
+    std::vector<HeroMessage> defensiveHeroes = {
+        {"Tank", 150, HeroType::DEFENDER},
+        {"Guardian", 130, HeroType::DEFENDER},
+        {"Support", 90, HeroType::SUPPORT}
+    };
+    hero->setInitialHeroes(defensiveHeroes);
+}
 
-    void setStrategy(std::unique_ptr<IAiBehaviorStrategy> strategy) {
-        if (strategy) {
-            CCLOG("Changing strategy to: %s", strategy->getStrategyName().c_str());
-            _strategy = std::move(strategy);
-            _strategy->initialize(this);
+// Implementation of BalancedStrategy - A concrete strategy providing mixed tactics
+void BalancedStrategy::initialize(AiminiHero* hero) {
+    // Initialize hero with balanced stats
+    hero->setMoney(110);
+    hero->setExp(0);
+    hero->setMaxOnBoard(5);
+    hero->setLevel(1);
+    
+    // Set up initial hero roster with mix of attackers, defenders and supports
+    std::vector<HeroMessage> balancedHeroes = {
+        {"Warrior", 100, HeroType::ATTACKER},
+        {"Tank", 150, HeroType::DEFENDER},
+        {"Support", 90, HeroType::SUPPORT}
+    };
+    hero->setInitialHeroes(balancedHeroes);
+}
+
+// AiminiHero class implementation - The context class in Strategy pattern
+AiminiHero::AiminiHero(int AiID) 
+    : _money(0), _exp(0), _maxOnBoard(0), _level(1) {
+    _battleStats = {0, 0, 0, 0.0f};
+}
+
+// Strategy pattern method to dynamically change AI behavior
+void AiminiHero::setStrategy(std::unique_ptr<IAiBehaviorStrategy> strategy) {
+    if (strategy) {
+        CCLOG("Changing strategy to: %s", strategy->getStrategyName().c_str());
+        _strategy = std::move(strategy);
+        // Initialize the hero with new strategy's settings
+        _strategy->initialize(this);
+    }
+}
+
+// Update method delegates behavior to current strategy
+void AiminiHero::update(float dt) {
+    if (_strategy) {
+        bool isAdd = false;
+        // Strategy pattern: Delegate pre-stage logic to current strategy
+        _strategy->preStageLogic(this, isAdd);
+        if (isAdd) {
+            CCLOG("Strategy %s made changes in pre-stage", 
+                  _strategy->getStrategyName().c_str());
         }
     }
+}
 
-    void update(float dt) {
-        if (_strategy) {
-            bool isAdd = false;
-            _strategy->preStageLogic(this, isAdd);
-            if (isAdd) {
-                CCLOG("Strategy %s made changes in pre-stage", 
-                      _strategy->getStrategyName().c_str());
-            }
-        }
+// Handle battle results using current strategy
+void AiminiHero::onBattleResult(bool isWin) {
+    updateBattleStats(isWin);
+    if (_strategy) {
+        // Strategy pattern: Let strategy handle battle aftermath
+        _strategy->onBattleEnd(this, isWin);
+        _strategy->adjustStrategy(this, _battleStats);
     }
+}
 
-    const std::vector<HeroMessage>& getHeroesInBattle() const {
-        return _heroesInBattle;
+// Update battle statistics for strategy evaluation
+void AiminiHero::updateBattleStats(bool isWin) {
+    if (isWin) {
+        _battleStats.wins++;
+        _battleStats.currentStreak = std::max(_battleStats.currentStreak + 1, 0);
+    } else {
+        _battleStats.losses++;
+        _battleStats.currentStreak = std::min(_battleStats.currentStreak - 1, 0);
     }
-
-    // ... 其他必要的getter/setter方法
-};
-
-// 4. 策略工厂
-class AiStrategyFactory {
-public:
-    static std::unique_ptr<IAiBehaviorStrategy> createStrategy(AiType type) {
-        switch(type) {
-            case AiType::AGGRESSIVE:
-                return std::make_unique<AggressiveStrategy>();
-            case AiType::DEFENSIVE:
-                return std::make_unique<DefensiveStrategy>();
-            case AiType::BALANCED:
-            default:
-                return std::make_unique<BalancedStrategy>();
-        }
-    }
-};
-
-// 5. 使用示例
-void initializeAI(AiminiHero* hero, int aiType) {
-    auto strategy = AiStrategyFactory::createStrategy(aiType);
-    hero->setStrategy(std::move(strategy));
+    
+    int totalBattles = _battleStats.wins + _battleStats.losses;
+    _battleStats.winRate = totalBattles > 0 ? 
+        static_cast<float>(_battleStats.wins) / totalBattles : 0.0f;
 }

@@ -16,7 +16,7 @@
 //{
 //	Label* label;
 //public:
-//	static HeroHouYi* create(Ecamp camp, Ref* scene);//´´ÔìÓ¢ÐÛ;
+//	static HeroHouYi* create(Ecamp camp, Ref* scene);//ï¿½ï¿½ï¿½ï¿½Ó¢ï¿½ï¿½;
 //	bool init(Ecamp camp, Ref* scene);
 //	void initWalkingAnimation(Vec2 destination);
 //	void decideToAttack();
@@ -49,7 +49,7 @@ class HeroHouYi :public Hero
 {
 	//Label* label;
 public:
-	static HeroHouYi* create(Ecamp camp, Ref* scene);//´´ÔìÓ¢ÐÛ;
+	static HeroHouYi* create(Ecamp camp, Ref* scene);//ï¿½ï¿½ï¿½ï¿½Ó¢ï¿½ï¿½;
 	bool init(Ecamp camp, Ref* scene);
 	void initWalkingAnimation(Vec2 destination);
 	void decideToAttack();
@@ -59,6 +59,8 @@ public:
 	void upDateMoving();
 	void upGrade();
 	void displayHeroLevel(int level);
+	// å…·ä½“è‹±é›„ç±»å®Œæ•´å®žçŽ°cloneæ–¹æ³•
+	virtual Hero* clone() const override;
 };
 
 

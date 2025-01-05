@@ -16,7 +16,7 @@ class HeroYase :public Hero
 {
 	//Label* label;
 public:
-	static HeroYase* create(Ecamp camp, Ref* scene);//����Ӣ��;
+	static HeroYase* create(Ecamp camp, Ref* scene);//����Ӣ��;
 	bool init(Ecamp camp, Ref* scene);
 	void initWalkingAnimation(Vec2 destination);
 	//void decideToAttack();
@@ -28,7 +28,8 @@ public:
 	void upGrade();
 	void displayHeroLevel(int level);
 	CallFunc* hitTarget();
-
+	// 具体英雄类完整实现clone方法
+	virtual Hero* clone() const override;
 };
 
 
