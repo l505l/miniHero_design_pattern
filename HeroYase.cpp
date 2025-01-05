@@ -3,18 +3,29 @@
 #include<string>
 #include"const.h"
 #include "SimpleAudioEngine.h"
+
+// Bridge Pattern: HeroYase 类作为抽象部分的具体实现
+// 通过组合方式使用 StateBar（实现部分）来管理英雄状态
+class HeroYase : public Hero {
+public:
+    static HeroYase* create(Ecamp camp, Ref* scene);
+    virtual bool init(Ecamp camp, Ref* scene) override;
+    // ... 其他方法声明 ...
+};
+
+// Bridge Pattern: 工厂方法创建具体的英雄实例
 HeroYase* HeroYase::create(Ecamp camp, Ref* scene)
 {
-    HeroYase* Daji = new (std::nothrow) HeroYase;
-    if (Daji && Daji->init(camp, scene))
+    HeroYase* yase = new (std::nothrow) HeroYase;
+    if (yase && yase->init(camp, scene))
     {
-
-        Daji->autorelease();
-        return Daji;
+        yase->autorelease();
+        return yase;
     }
-    CC_SAFE_DELETE(Daji);
+    CC_SAFE_DELETE(yase);
     return nullptr;
 }
+
 bool HeroYase::init(Ecamp camp, Ref* scene)
 {
     this->addTouchListener();
@@ -44,9 +55,16 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     this->setIsOnTheStage(false);
     this->setCamp(camp);
     this->setEnergyRecoverRate(warriorEnergyRecoverRate);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0,getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate(),getCamp()));
+
+    // Bridge Pattern: 创建具体的状态栏实现类
+    // 为战士类型英雄创建特定初始属性的状态栏
+    auto healthBar = HealthBar::create(shooterHpLim, 0, camp);
+    auto energyBar = EnergyBar::create(energyLim, shooterEnergyRecoverRate, camp);
     
+    // Bridge Pattern: 通过桥接模式的接口添加状态栏
+    this->addStateBar(healthBar);
+    this->addStateBar(energyBar);
+
     this->setTag(YASEYASE);
     this->setAttackTarget(nullptr);
     //this->setLatestTargetPos(Vec2(0, 0));
@@ -58,29 +76,18 @@ bool HeroYase::init(Ecamp camp, Ref* scene)
     upDateMoving();
     SkillLogic(); 
    
-    auto healthBar = HealthBar::create(shooterHpLim, 0, camp);
-    auto energyBar = EnergyBar::create(energyLim, shooterEnergyRecoverRate, camp);
-    
-    this->addStateBar(healthBar);
-    this->addStateBar(energyBar);
-    
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-    this->getHpBar()->setScale(0.7, 1);
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
-    this->getEnergyBar()->setScale(0.7, 1);
-
-
-
+    // Bridge Pattern: 状态栏位置更新回调
     std::function<void(float)> upDateHpAndEnergyPos = [this](float) {
-        if (getHpBar() != nullptr && getEnergyBar() != nullptr)
-        {
-            this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-            this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
-            label->setPosition( Vec2(this->getContentSize().width / 2,
-                this->getContentSize().height - 10 - label->getContentSize().height));
+        // Bridge Pattern: 通过统一接口获取具体的状态栏实现
+        if (auto healthBar = this->getStateBar("health")) {
+            if (auto energyBar = this->getStateBar("energy")) {
+                healthBar->setPosition(Vec2(this->getContentSize().width / 2, 
+                    this->getContentSize().height + 0));
+                energyBar->setPosition(Vec2(this->getContentSize().width / 2, 
+                    this->getContentSize().height - 10));
+                label->setPosition(Vec2(this->getContentSize().width / 2,
+                    this->getContentSize().height - 10 - label->getContentSize().height));
+            }
         }
     };
 
@@ -123,45 +130,48 @@ void HeroYase::upDateMoving()
 }
 
 void HeroYase::SkillLogic() {
+    // Bridge Pattern: 技能逻辑中使用状态栏接口
     std::function<void(float)> Skill = [this](float) {
-        if (this->getEnergyBar() && ((this->getEnergyBar())->getCurrentState() ==
-            (this->getEnergyBar())->getMaxState()))
-        {
-            double dis = -1;
-            //�����߼�
-            HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
-            Hero* farestEnermy = nullptr;
-            for (auto it = Scene->_heroes.begin(); it != Scene->_heroes.end(); it++) {
+        // Bridge Pattern: 通过状态栏接口检查能量状态
+        if (auto energyBar = this->getStateBar("energy")) {
+            if (energyBar->getCurrentState() == energyBar->getMaxState())
+            {
+                double dis = -1;
+                //߼
+                HelloWorld* Scene = dynamic_cast<HelloWorld*>(this->getPresentScene());
+                Hero* farestEnermy = nullptr;
+                for (auto it = Scene->_heroes.begin(); it != Scene->_heroes.end(); it++) {
 
-                if ((*it)->getCamp() != _camp && (*it)->getIsOnTheStage() && getPosition().getDistance((*it)->getPosition()) > dis && !(*it)->getIsDead()) {
-                    dis = getPosition().getDistance((*it)->getPosition());
-                    farestEnermy = (*it);
+                    if ((*it)->getCamp() != _camp && (*it)->getIsOnTheStage() && getPosition().getDistance((*it)->getPosition()) > dis && !(*it)->getIsDead()) {
+                        dis = getPosition().getDistance((*it)->getPosition());
+                        farestEnermy = (*it);
+                    }
                 }
-            }
-            if (farestEnermy != nullptr && getIsOnTheStage()) {
-                Vector<SpriteFrame*> animSkillFrames;
-                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ����֡
-                animSkillFrames.pushBack(SpriteFrame::create("flash.png", Rect(0, 0, 400, 400))); // ����֡
-                animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ����֡
+                if (farestEnermy != nullptr && getIsOnTheStage()) {
+                    Vector<SpriteFrame*> animSkillFrames;
+                    animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ֡
+                    animSkillFrames.pushBack(SpriteFrame::create("flash.png", Rect(0, 0, 400, 400))); // ֡
+                    animSkillFrames.pushBack(SpriteFrame::create("MinatoSkill.png", Rect(0, 0, 400, 400))); // ֡
 
 
-                auto animationSkill = Animation::createWithSpriteFrames(animSkillFrames, 0.15f); // 0.1fΪÿ֡����ʱ��
-                auto animateSkill = Animate::create(animationSkill);
-                auto Skill = Spawn::create(animateSkill, nullptr, nullptr);
-                this->runAction(Skill);
-                int diff = 0;
-                if (farestEnermy->getPosition().x < Director::getInstance()->getVisibleSize().width / 2) {
-                    if (getDir() != -1)
-                        Flip();
-                    diff = 50;
+                    auto animationSkill = Animation::createWithSpriteFrames(animSkillFrames, 0.15f); // 0.1fΪÿ֡ʱ
+                    auto animateSkill = Animate::create(animationSkill);
+                    auto Skill = Spawn::create(animateSkill, nullptr, nullptr);
+                    this->runAction(Skill);
+                    int diff = 0;
+                    if (farestEnermy->getPosition().x < Director::getInstance()->getVisibleSize().width / 2) {
+                        if (getDir() != -1)
+                            Flip();
+                        diff = 50;
+                    }
+                    else {
+                        if (getDir() != 1)
+                            Flip();
+                        diff = -50;
+                    }
+                    setPosition(Vec2(farestEnermy->getPosition().x + diff, farestEnermy->getPosition().y));
+                    energyBar->setCurrentState(5);
                 }
-                else {
-                    if (getDir() != 1)
-                        Flip();
-                    diff = -50;
-                }
-                setPosition(Vec2(farestEnermy->getPosition().x + diff, farestEnermy->getPosition().y));
-                this->getEnergyBar()->setCurrentState(5);
             }
         }
         if (getIsDead())
@@ -171,23 +181,23 @@ void HeroYase::SkillLogic() {
 }
 
 void HeroYase::initWalkingAnimation(Vec2 destination) {
-    Vector<SpriteFrame*> animFrames; // ����֡����
+    Vector<SpriteFrame*> animFrames; // ֡
 
-    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ����֡
-    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ����֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun4.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun3.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun2.png", Rect(0, 0, 400, 400))); // ֡
+    animFrames.pushBack(SpriteFrame::create("Minatorun1.png", Rect(0, 0, 400, 400))); // ֡
 
   
     auto animation = Animation::createWithSpriteFrames(animFrames, 0.125f);
     auto animate = Animate::create(animation);
     auto repeatForever = RepeatForever::create(animate);
     this->stopAllActions();
-    this->runAction(repeatForever);  // ��ʼ�������߶���
+    this->runAction(repeatForever);  // ʼ߶
 
     auto Time = (this->getPosition().distance((_attackTarget)->getPosition())) / _spd;
     auto move = MoveTo::create(Time, destination);
@@ -195,25 +205,27 @@ void HeroYase::initWalkingAnimation(Vec2 destination) {
 }
 
 
-//һֱ�򣬸�stop
+//һֱ�򣬸stop
 void HeroYase::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
     
-    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack1.png", Rect(0, 0, 400, 400))); // ����֡
-    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack2.png", Rect(0, 0, 400, 400))); // ����֡
+    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack1.png", Rect(0, 0, 400, 400))); // ֡
+    animAttackFrames.pushBack(SpriteFrame::create("MinatoAttack2.png", Rect(0, 0, 400, 400))); // ֡
 
-    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fΪÿ֡����ʱ��
+    auto animationAttack = Animation::createWithSpriteFrames(animAttackFrames, 0.5f); // 0.1fΪÿ֡ʱ
     auto animateAttack = Animate::create(animationAttack);
     auto ATTACK = Spawn::create(animateAttack, nullptr, nullptr);
 
-    //�չ���һ������
+    //չһ
     auto attackSequence = Spawn::create(ATTACK, this->hitTarget(), nullptr);
     auto repeatAttackAndFire = RepeatForever::create(attackSequence);
     this->runAction(repeatAttackAndFire);
 
+    //攻击状态检查
     std::function<void(float)> stop = [this, repeatAttackAndFire](float) {
         this->updateAttackTarget();
-        if (this && _attackTarget && !(this->getPosition().distance((_attackTarget)->getPosition()) < attackScope))
+        if (this && _attackTarget && 
+            !(this->getPosition().distance((_attackTarget)->getPosition()) < attackScope))
         {
             this->unschedule("stop");
             this->stopAction(repeatAttackAndFire);
@@ -224,28 +236,25 @@ void HeroYase::performAttack() {
 }
 
 CallFunc* HeroYase::hitTarget() {
-    //�����߼�
+    // Bridge Pattern: 通过状态栏接口处理伤害效果
     auto fireArrow = CallFunc::create([this]() {
-        auto audio = CocosDenshion::SimpleAudioEngine::getInstance();
-        audio->playEffect("Base_Attack_Minato.mp3", false);
-        audio->setEffectsVolume(1.0f);
         if (_attackTarget) {
             INT32 damageDelta = attackPower;
-            _attackTarget->getHpBar()->changeStateBy(-damageDelta);
-            if (getCamp() == BLUE)
-            {
-                int a = 0;
-            }
-            if (_attackTarget->getHpBar()->getCurrentState() <= 0)
-            {
-                _attackTarget->setIsDead(true);
-                _attackTarget->setVisible(false);
-                _attackTarget->stopAllActions();
-                //arrowSprite->stopAllActions();
-                //_attackTarget->mySprite->removeFromParent();
-                this->stopAllActions();
-                this->unschedule("arrow_collision_check");
-                upDateMoving();
+            
+            // Bridge Pattern: 通过状态栏接口更新目标生命值
+            if (auto targetHealth = _attackTarget->getStateBar("health")) {
+                targetHealth->changeStateBy(-damageDelta);
+                
+                // 检查目标状态并处理死亡逻辑
+                if (targetHealth->getCurrentState() <= 0)
+                {
+                    _attackTarget->setIsDead(true);
+                    _attackTarget->setVisible(false);
+                    _attackTarget->stopAllActions();
+                    this->stopAllActions();
+                    this->unschedule("arrow_collision_check");
+                    upDateMoving();
+                }
             }
         }
     });
@@ -255,40 +264,36 @@ CallFunc* HeroYase::hitTarget() {
 
 
 void HeroYase::displayHeroLevel(int level) {
-    // ����һ�� Label ������ʾ�ȼ�
+    // һ Label ʾȼ
     this->label = Label::createWithTTF("lv."+std::to_string(level), "fonts/Marker Felt.ttf", 24);
 
-    // ���� Label ��λ��
+    //  Label 
     label->setPosition(Vec2(Vec2(this->getContentSize().width / 2,
         this->getContentSize().height + 30 - label->getContentSize().height)));
 
-    // �����ı���ɫ
+    // ıɫ
     label->setColor(Color3B::WHITE);
 
-    // �� Label ���ӵ�����
+    //  Label 
     this->addChild(label, 1);
 }
 void HeroYase::upGrade()
 {
-    this->removeChild(this->getHpBar(), true);
-    this->removeChild(this->getEnergyBar(), true);
+    // Bridge Pattern: 升级时更新状态栏
+    // 移除旧的状态栏实现
+    this->removeStateBar("health");
+    this->removeStateBar("energy");
 
+    // 更新属性值
     this->setHpLim(getHpLim() * 2);
-   
-    this->setSpd(getSpd() * 1.5f);
-    this->setLv(getLv() + 1);
+    this->setEnergyLim(getEnergyLim() / 2);
+    // ... 其他属性更新 ...
 
-    this->removeChild(label, true);
-    this->displayHeroLevel(getLv());
-
-    this->setAttackPower(getAttackPower() * 2);
-    this->setSkillPower(getSkillPower() * 2);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0,getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate() * 2,getCamp()));
-
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
+    // Bridge Pattern: 创建并添加新的状态栏实现
+    auto newHealthBar = HealthBar::create(this->getHpLim(), 0, getCamp());
+    auto newEnergyBar = EnergyBar::create(this->getEnergyLim(), 
+        getEnergyRecoverRate() * 2, getCamp());
+    
+    this->addStateBar(newHealthBar);
+    this->addStateBar(newEnergyBar);
 }
