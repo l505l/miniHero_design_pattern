@@ -1,18 +1,18 @@
-/****************************************************************************
+﻿/****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- 
+
  http://www.cocos2d-x.org
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -44,7 +44,7 @@ public:
     static cocos2d::Scene* createScene();
     void Refresh(Ref* obj);
     miniHero* myMiniHero;
-    std::vector <AiminiHero*> _AiMiniHero;
+    std::vector<AiminiHero*> _AiMiniHero;
     int _order = 0;
     bool valid[4] = { 1,1,1,1 };
     void startGame1(float ft);
@@ -52,12 +52,12 @@ public:
     void checkWinLose(float ft);
     int cheak();
     char _message_[56];
-   void setAlldragable(bool _BOOL);
-   void checkWindow(float ft);
+    void setAlldragable(bool _BOOL);
+    void checkWindow(float ft);
     void Gamewinorlose(int c);
     void resetGame(float dt);
     virtual bool init();
-    
+
     int countdownValue;
     Label* countdownLabel;
     // a selector callback
@@ -83,7 +83,7 @@ public:
         Highlight->setVisible(false);
     }
 
-    // ��������¼�
+    // ��������¼�
     void enableMouseEvents() {
         if (!_eventDispatcher->isEnabled()) {
             _eventDispatcher->setEnabled(true);
@@ -96,8 +96,19 @@ public:
     }
     // /////////////////////////
     // implement the "static create()" method manually
-    CREATE_FUNC(HelloWorld);  //���κ�
+    CREATE_FUNC(HelloWorld);  //���κ�
     void disPlayMoney();
+
+    // 修改为指针数组
+    std::vector<AiminiHero*> _AiMiniHero;
+
+    // 添加懒加载方法
+    AiminiHero* getAiHero(int index);
+    void initAiHeroIfNeeded(int index);
+
+private:
+    // 添加标记数组记录是否已创建
+    std::vector<bool> _aiHeroCreated;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

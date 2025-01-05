@@ -29,7 +29,7 @@ bool HelloWorld::init()
 {
     //////////////////////////////
     // 1. super init first
-    if ( !Scene::init() )
+    if (!Scene::init())
     {
         return false;
     }
@@ -47,13 +47,13 @@ bool HelloWorld::init()
     sprite->setPosition(Vec2(0, 0));
     sprite->setScaleX(1 / 2.45f);
     sprite->setScaleY(1 / 1.8f);
-    
-   
+
+
 
     ////////////////////////
     countdownLabel = Label::createWithTTF("9", "fonts/arial.ttf", 32);
-    countdownLabel->setPosition(Vec2(480,580));
-    this->addChild(countdownLabel,0);
+    countdownLabel->setPosition(Vec2(480, 580));
+    this->addChild(countdownLabel, 0);
 
     // 倒计时初始值
     countdownValue = 9;
@@ -87,48 +87,52 @@ bool HelloWorld::init()
     myMiniHero->setDragable(0);
     myMiniHero->setPosition(Vec2(120, 120));
 
-    for (int i = 0; i < Ainum; i++)
+    _AiMiniHero.resize(Ainum, nullptr);  // 初始化为空指针
+    _aiHeroCreated.resize(Ainum, false); // 初始化创建标记
+
+    // 删除原来的循环创建代码
+    /*for (int i = 0; i < Ainum; i++)
     {
         AiminiHero* _aiai = AiminiHero::create("minihero.png", RED, HEALTH, dis(gen));
         this->addChild(_aiai);
         _aiai->setDragable(0);
         _aiai->setPosition(Vec2(800, 500));
         _AiMiniHero.push_back(_aiai);
-    }
+    }*/
 
     // add a "close" icon to exit the progress. it's an autorelease object
     auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
+        "CloseNormal.png",
+        "CloseSelected.png",
+        CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
 
-  
-        float x = origin.x + visibleSize.width - closeItem->getContentSize().width/2;
-        float y = origin.y + closeItem->getContentSize().height/2;
-        closeItem->setPosition(Vec2(x,y));
-        for (int i = 0; i < 4; i++)
-        {
-            int _Tagofhero = dis(gen);
-            switch (_Tagofhero) {
-            case 1:
-                menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
-                 break;
-            case 2:
-                menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
-                break;
-            case 3:
-                menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
-                break;
-            }
-            menuItemImageBuy[i]->setPosition(Vec2(140, 240+75*i));
-            menuItemImageBuy[i]->setScale(0.4);
-            menuItemImageBuy[i]->setTag(100+i);
+
+    float x = origin.x + visibleSize.width - closeItem->getContentSize().width / 2;
+    float y = origin.y + closeItem->getContentSize().height / 2;
+    closeItem->setPosition(Vec2(x, y));
+    for (int i = 0; i < 4; i++)
+    {
+        int _Tagofhero = dis(gen);
+        switch (_Tagofhero) {
+        case 1:
+            menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
+            break;
+        case 2:
+            menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
+            break;
+        case 3:
+            menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
+            break;
         }
-        menuItemImageRefresh = MenuItemImage::create("Refresh.png", "Refresh1.png", "Refresh1.png", CC_CALLBACK_1(HelloWorld::Refresh, this));
-        menuItemImageRefresh->setPosition(Vec2(100, 240 + 75 * 4));
-        menuItemImageBuyExp = MenuItemImage::create("BuyExp.png", "BuyExp1.png", "BuyExp1.png", CC_CALLBACK_1(HelloWorld::buyExp, this));
-        menuItemImageBuyExp->setPosition(Vec2(100, 50));
-        menu = Menu::create(closeItem, menuItemImageBuy[0], menuItemImageBuy[1], menuItemImageBuy[2], menuItemImageBuy[3], menuItemImageRefresh, menuItemImageBuyExp,NULL);
+        menuItemImageBuy[i]->setPosition(Vec2(140, 240 + 75 * i));
+        menuItemImageBuy[i]->setScale(0.4);
+        menuItemImageBuy[i]->setTag(100 + i);
+    }
+    menuItemImageRefresh = MenuItemImage::create("Refresh.png", "Refresh1.png", "Refresh1.png", CC_CALLBACK_1(HelloWorld::Refresh, this));
+    menuItemImageRefresh->setPosition(Vec2(100, 240 + 75 * 4));
+    menuItemImageBuyExp = MenuItemImage::create("BuyExp.png", "BuyExp1.png", "BuyExp1.png", CC_CALLBACK_1(HelloWorld::buyExp, this));
+    menuItemImageBuyExp->setPosition(Vec2(100, 50));
+    menu = Menu::create(closeItem, menuItemImageBuy[0], menuItemImageBuy[1], menuItemImageBuy[2], menuItemImageBuy[3], menuItemImageRefresh, menuItemImageBuyExp, NULL);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu, 1);
     //add
@@ -156,8 +160,8 @@ bool HelloWorld::init()
     disPlayMoney();
     Waiting();
 
-   
-    
+
+
 
     return true;
 }
@@ -169,7 +173,7 @@ void HelloWorld::disPlayMoney()
     this->addChild(sell);
 
     this->label = Label::createWithTTF("money:" + std::to_string(this->myMiniHero->getMoney()), "fonts/Marker Felt.ttf", 30);
-    
+
     // 设置 Label 的位置
     label->setPosition(Vec2(900, 580));
 
@@ -181,7 +185,7 @@ void HelloWorld::disPlayMoney()
     std::function<void(float)> screenMoney = [this](float) {
         this->getLable()->setString("money:" + std::to_string(this->myMiniHero->getMoney()));
 
-    };
+        };
     this->schedule(screenMoney, 0.001f, "screenMoney");
 }
 void HelloWorld::Waiting() {
@@ -224,7 +228,7 @@ void HelloWorld::buydaji(Ref* obj)
 
         item->removeFromParent();
     }
-   
+
 }
 void HelloWorld::buyyase(Ref* obj)
 {
@@ -256,7 +260,7 @@ void HelloWorld::buyyase(Ref* obj)
         valid[item->getTag() - 100] = 0;
         item->removeFromParent();
     }
-    
+
 }
 void HelloWorld::buyhouyi(Ref* obj)
 {
@@ -271,7 +275,7 @@ void HelloWorld::buyhouyi(Ref* obj)
         if (it->_phero)
             _iCount++;
     }
-    if (myMiniHero->getMoney() >= 2 && _iCount <10)
+    if (myMiniHero->getMoney() >= 2 && _iCount < 10)
     {
         auto Hero1 = HeroHouYi::create(RED, this);
         //Hero1->setScale(0.5);
@@ -288,7 +292,7 @@ void HelloWorld::buyhouyi(Ref* obj)
         valid[item->getTag() - 100] = 0;
         item->removeFromParent();
     }
-    
+
 }
 
 void HelloWorld::startGame1(float ft) {
@@ -298,18 +302,17 @@ void HelloWorld::startGame1(float ft) {
     myMiniHero->setDragable(true);
     if (_player == 1)
     {
-       /* for (int i = 0; i < 28; i++)
-        {
-            _message_[i * 2] = '1';
-            _message_[i * 2+1] = '1';
-        }*/
-        _AiMiniHero[_order]->setVisible(true);
-        _AiMiniHero[_order]->sendAIMessage();
-        for (int i = 0; i < 56; i++)
-            _message_[i] = _AiMiniHero[_order]->_heroMessage[i];
+        // 使用懒加载方式获取 AI 英雄
+        AiminiHero* currentAiHero = getAiHero(_order);
+        if (currentAiHero) {
+            currentAiHero->setVisible(true);
+            currentAiHero->sendAIMessage();
+            for (int i = 0; i < 56; i++)
+                _message_[i] = currentAiHero->_heroMessage[i];
+        }
     }
     else  if (_player == 2) {
-        Command *com=new Command;
+        Command* com = new Command;
         com->sendHeroMessage(myMiniHero->generateMessage());
         com->recvHeroMessage();
         for (int i = 0; i < 56; i++)
@@ -318,7 +321,7 @@ void HelloWorld::startGame1(float ft) {
     }
 
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame2, this), 2.0, "startGame2");
-    
+
 }
 
 void HelloWorld::startGame2(float ft) {
@@ -327,19 +330,21 @@ void HelloWorld::startGame2(float ft) {
         //
         switch (_message_[2 * i]) {
         case '1':
-        {auto Hero1 = HeroDaJi::create(BLUE, this);
-        //Hero1->setScale(0.5);
-        Hero1->setIsOnTheStage(true);
-        for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
-            Hero1->upGrade();
-        Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
+        {
+            auto Hero1 = HeroDaJi::create(BLUE, this);
+            //Hero1->setScale(0.5);
+            Hero1->setIsOnTheStage(true);
+            for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
+                Hero1->upGrade();
+            Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
 
-        //this->myMiniHero->getEmptyWait()->_phero = Hero1;
-        this->addChild(Hero1);
-        Hero1->setPosition(a);
-        Hero1->setDragable(false);
-        _heroes.push_back(Hero1);
-        break; }
+            //this->myMiniHero->getEmptyWait()->_phero = Hero1;
+            this->addChild(Hero1);
+            Hero1->setPosition(a);
+            Hero1->setDragable(false);
+            _heroes.push_back(Hero1);
+            break;
+        }
         case '2': {
             auto Hero1 = HeroYase::create(BLUE, this);
             //Hero1->setScale(0.5);
@@ -353,22 +358,25 @@ void HelloWorld::startGame2(float ft) {
             Hero1->setPosition(a);
             Hero1->setDragable(false);
             _heroes.push_back(Hero1);
-            break; }
+            break;
+        }
         case '3':
-        {auto Hero1 = HeroHouYi::create(BLUE, this);
-        //Hero1->setScale(0.5);
-        Hero1->setIsOnTheStage(true);
-        for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
-            Hero1->upGrade();
-        Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
+        {
+            auto Hero1 = HeroHouYi::create(BLUE, this);
+            //Hero1->setScale(0.5);
+            Hero1->setIsOnTheStage(true);
+            for (int j = 1; j < (_message_[2 * i + 1] - '0'); j++)
+                Hero1->upGrade();
+            Vec2 a = Vec2(myMiniHero->opGrid_Battle[i]._x, myMiniHero->opGrid_Battle[i]._y);
 
-        //this->myMiniHero->getEmptyWait()->_phero = Hero1;
-        this->addChild(Hero1);
-        Hero1->setPosition(a);
-        Hero1->setDragable(false);
-        _heroes.push_back(Hero1);
-        break; }
-       
+            //this->myMiniHero->getEmptyWait()->_phero = Hero1;
+            this->addChild(Hero1);
+            Hero1->setPosition(a);
+            Hero1->setDragable(false);
+            _heroes.push_back(Hero1);
+            break;
+        }
+
         }
 
     }
@@ -384,22 +392,24 @@ void HelloWorld::startGame2(float ft) {
             {
 
             case DAJIDAJI:
-            {auto Hero1 = HeroDaJi::create(RED, this);
-            //Hero1->setScale(0.5);
-            Hero1->setIsOnTheStage(true);
-            Hero1->setDragable(false);
-            Vec2 aa = Vec2(it->_x, it->_y);
-            it->_phero = Hero1;
-            this->addChild(Hero1);
-            Hero1->setPosition(aa);
-            _heroes.push_back(Hero1);
-            for (int i = 1; i < _level; i++)
             {
-                Hero1->upGrade();
+                auto Hero1 = HeroDaJi::create(RED, this);
+                //Hero1->setScale(0.5);
+                Hero1->setIsOnTheStage(true);
+                Hero1->setDragable(false);
+                Vec2 aa = Vec2(it->_x, it->_y);
+                it->_phero = Hero1;
+                this->addChild(Hero1);
+                Hero1->setPosition(aa);
+                _heroes.push_back(Hero1);
+                for (int i = 1; i < _level; i++)
+                {
+                    Hero1->upGrade();
+                }
+                break;
             }
-            break;
-            }
-            case YASEYASE: {auto Hero1 = HeroYase::create(RED, this);
+            case YASEYASE: {
+                auto Hero1 = HeroYase::create(RED, this);
                 //Hero1->setScale(0.5);
                 Hero1->setIsOnTheStage(true);
                 Hero1->setDragable(false);
@@ -415,20 +425,21 @@ void HelloWorld::startGame2(float ft) {
                 break;
             }
             case HOUYIHOUYI:
-            {   auto Hero1 = HeroHouYi::create(RED, this);
-            //Hero1->setScale(0.5);
-            Hero1->setIsOnTheStage(true);
-            Hero1->setDragable(false);
-            Vec2 aa = Vec2(it->_x, it->_y);
-            it->_phero = Hero1;
-            this->addChild(Hero1);
-            Hero1->setPosition(aa);
-            _heroes.push_back(Hero1);
-            for (int i = 1; i < _level; i++)
             {
-                Hero1->upGrade();
-            }
-            break;
+                auto Hero1 = HeroHouYi::create(RED, this);
+                //Hero1->setScale(0.5);
+                Hero1->setIsOnTheStage(true);
+                Hero1->setDragable(false);
+                Vec2 aa = Vec2(it->_x, it->_y);
+                it->_phero = Hero1;
+                this->addChild(Hero1);
+                Hero1->setPosition(aa);
+                _heroes.push_back(Hero1);
+                for (int i = 1; i < _level; i++)
+                {
+                    Hero1->upGrade();
+                }
+                break;
 
             }
             }
@@ -448,7 +459,7 @@ void HelloWorld::startGame2(float ft) {
 }
 int HelloWorld::cheak() {
     //我还没有死光
-    int win=2;
+    int win = 2;
     for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
         if ((*it)->getCamp() == RED && (*it)->getIsDead() == FALSE)
@@ -473,12 +484,12 @@ int HelloWorld::cheak() {
 }
 void HelloWorld::checkWinLose(float ft) {
     int c = cheak();
-   
+
     if (c == 0) {//本方英雄死光了
         // 输赢处理逻辑
         myMiniHero->getHpBar()->setCurrentState(myMiniHero->getHpBar()->getCurrentState() - 4);
         myMiniHero->getHpBar()->updatePercent();
-       
+
 
 
         this->unschedule("checkWinLose");
@@ -543,7 +554,7 @@ void HelloWorld::checkWinLose(float ft) {
         auto audio = CocosDenshion::SimpleAudioEngine::getInstance();
         audio->playEffect("endgame_win.mp3", false);
         audio->setEffectsVolume(1.0f);
-        
+
         myMiniHero->setLv(myMiniHero->getLv() + 1);
         if (myMiniHero->getMaxOnBoard() < 10)
             myMiniHero->setMaxOnBoard(myMiniHero->getMaxOnBoard() + 1);
@@ -573,12 +584,12 @@ void HelloWorld::checkWinLose(float ft) {
 }
 
 void HelloWorld::Gamewinorlose(int c) {
- 
+
     if (_player == 1)
     {
         _AiMiniHero[_order]->setVisible(false);
         _order++;
-        if (_order >= Ainum||(myMiniHero->getHpBar()->getCurrentState() <= 0))
+        if (_order >= Ainum || (myMiniHero->getHpBar()->getCurrentState() <= 0))
         {
 
             auto scene = MusicSetting::createScene();
@@ -587,7 +598,7 @@ void HelloWorld::Gamewinorlose(int c) {
         for (int i = 0; i < Ainum; i++)
         {
             _AiMiniHero[i]->setLv(_AiMiniHero[i]->getLv() + 1);
-            if(_AiMiniHero[i]->getMaxOnBoard()<10)
+            if (_AiMiniHero[i]->getMaxOnBoard() < 10)
                 _AiMiniHero[i]->setMaxOnBoard(_AiMiniHero[i]->getMaxOnBoard() + 1);
             _AiMiniHero[i]->setMoney(_AiMiniHero[i]->getMoney() + dis(gen));
         }
@@ -595,7 +606,7 @@ void HelloWorld::Gamewinorlose(int c) {
     }
     else if (_player == 2)
     {
-        if (_order>=Max_order||myMiniHero->getHpBar()->getCurrentState() <= 0)
+        if (_order >= Max_order || myMiniHero->getHpBar()->getCurrentState() <= 0)
         {
             auto scene = MusicSetting::createScene();
             Director::getInstance()->replaceScene(scene);
@@ -609,31 +620,31 @@ void HelloWorld::Gamewinorlose(int c) {
 }
 
 void HelloWorld::resetGame(float dt) {
-  
-        for (int i = 0; i < 4; i++)
-            if (valid[i] == 1)
-                menu->removeChild(menuItemImageBuy[i], 1);
-        for (int i = 0; i < 4; i++)
-        {
-            int _Tagofhero = dis(gen);
-            switch (_Tagofhero) {
-            case 1:
-                menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
-                break;
-            case 2:
-                menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
-                break;
-            case 3:
-                menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
-                break;
-            }
-            menuItemImageBuy[i]->setPosition(Vec2(140.0f, static_cast<float>(240 + 75 * i)));
-            menuItemImageBuy[i]->setScale(0.4f);
-            menuItemImageBuy[i]->setTag(100 + i);
-            menu->addChild(menuItemImageBuy[i]);
-            valid[i] = 1;
+
+    for (int i = 0; i < 4; i++)
+        if (valid[i] == 1)
+            menu->removeChild(menuItemImageBuy[i], 1);
+    for (int i = 0; i < 4; i++)
+    {
+        int _Tagofhero = dis(gen);
+        switch (_Tagofhero) {
+        case 1:
+            menuItemImageBuy[i] = MenuItemImage::create("Dajibuy.png", "Daji1.png", "Daji1.png", CC_CALLBACK_1(HelloWorld::buydaji, this));
+            break;
+        case 2:
+            menuItemImageBuy[i] = MenuItemImage::create("Minato.png", "Minato1.png", "Minato1.png", CC_CALLBACK_1(HelloWorld::buyyase, this));
+            break;
+        case 3:
+            menuItemImageBuy[i] = MenuItemImage::create("Houyi.png", "Houyi1.png", "Houyi1.png", CC_CALLBACK_1(HelloWorld::buyhouyi, this));
+            break;
         }
-    
+        menuItemImageBuy[i]->setPosition(Vec2(140.0f, static_cast<float>(240 + 75 * i)));
+        menuItemImageBuy[i]->setScale(0.4f);
+        menuItemImageBuy[i]->setTag(100 + i);
+        menu->addChild(menuItemImageBuy[i]);
+        valid[i] = 1;
+    }
+
     // 清除之前的游戏内容
    // this->removeAllChildren();
     /////先把所有上场英雄设为不可见和死亡
@@ -645,12 +656,12 @@ void HelloWorld::resetGame(float dt) {
         (*it)->setIsDead(true);
     }
     ////再把敌人的精灵移除
-   for (auto it = _heroes.begin(); it < _heroes.end(); it++)
+    for (auto it = _heroes.begin(); it < _heroes.end(); it++)
     {
-       if ((*it)->getCamp() == BLUE)
-           this->removeChild(*it);
+        if ((*it)->getCamp() == BLUE)
+            this->removeChild(*it);
     }
-   //清除场上英雄的数组
+    //清除场上英雄的数组
     _heroes.clear();
     //对于我的上场英雄，将他们恢复（位置、死亡、隐身）
     for (auto it = myMiniHero->Grid_Battle.begin(); it < myMiniHero->Grid_Battle.end(); it++)
@@ -663,28 +674,28 @@ void HelloWorld::resetGame(float dt) {
             it->_phero->setPosition(Vec2(it->_x, it->_y));
         }
     }
-        // 重新初始化游戏
-   // reinitGame();
-   countdownValue = 9;
-   this->scheduleOnce([this](float dt) {
-       // 每隔1秒更新一次倒计时
-       this->schedule([this](float dt) {
-           countdownValue--;
-           if (countdownValue >= 0) {
-               // 更新Label显示
-               countdownLabel->setString(StringUtils::format("%d", countdownValue));
-           }
-           else {
-               // 倒计时结束，取消schedule
-               this->unschedule("countdown");
-           }
-           }, 1.0f, "countdown");
-       }, 1.0f, "startCountdown");
-   myMiniHero->setDragable(false);
-   setAlldragable(true);
-   menu->setEnabled(true);
-  enableMouseEvents();
-   myMiniHero->setPosition(Vec2(120, 120));
+    // 重新初始化游戏
+// reinitGame();
+    countdownValue = 9;
+    this->scheduleOnce([this](float dt) {
+        // 每隔1秒更新一次倒计时
+        this->schedule([this](float dt) {
+            countdownValue--;
+            if (countdownValue >= 0) {
+                // 更新Label显示
+                countdownLabel->setString(StringUtils::format("%d", countdownValue));
+            }
+            else {
+                // 倒计时结束，取消schedule
+                this->unschedule("countdown");
+            }
+            }, 1.0f, "countdown");
+        }, 1.0f, "startCountdown");
+    myMiniHero->setDragable(false);
+    setAlldragable(true);
+    menu->setEnabled(true);
+    enableMouseEvents();
+    myMiniHero->setPosition(Vec2(120, 120));
     // 延时一段时间后开始新的一局
     this->scheduleOnce(CC_CALLBACK_1(HelloWorld::startGame1, this), 10.0f, "restartGame");
 }
@@ -749,7 +760,7 @@ void HelloWorld::buyExp(Ref* obj)
     }
     else {
     }
-    float percent = static_cast<float>(myMiniHero->getExp()) / myMiniHero->getCurExpLim()*20;
+    float percent = static_cast<float>(myMiniHero->getExp()) / myMiniHero->getCurExpLim() * 20;
     this->myMiniHero->getEnergyBar()->setCurrentState(static_cast<INT32>(percent));
     this->myMiniHero->getEnergyBar()->updatePercent();
     lvLabel->setString("lv:" + std::to_string(myMiniHero->getLv()));
@@ -758,8 +769,8 @@ void HelloWorld::Refresh(Ref* obj) {
     if (myMiniHero->getMoney() >= 1)
     {
         for (int i = 0; i < 4; i++)
-            if(valid[i]==1)
-            menu->removeChild(menuItemImageBuy[i], 1);
+            if (valid[i] == 1)
+                menu->removeChild(menuItemImageBuy[i], 1);
         for (int i = 0; i < 4; i++)
         {
             int _Tagofhero = dis(gen);
@@ -780,7 +791,32 @@ void HelloWorld::Refresh(Ref* obj) {
             menu->addChild(menuItemImageBuy[i]);
             valid[i] = 1;
         }
-   
-    myMiniHero->setMoney(myMiniHero->getMoney() - 1);
+
+        myMiniHero->setMoney(myMiniHero->getMoney() - 1);
+    }
+}
+
+// 添加懒加载方法实现
+AiminiHero* HelloWorld::getAiHero(int index)
+{
+    if (index < 0 || index >= Ainum) {
+        return nullptr;
+    }
+
+    initAiHeroIfNeeded(index);
+    return _AiMiniHero[index];
+}
+
+void HelloWorld::initAiHeroIfNeeded(int index)
+{
+    if (!_aiHeroCreated[index]) {
+        AiminiHero* _aiai = AiminiHero::create("minihero.png", RED, HEALTH, dis(gen));
+        this->addChild(_aiai);
+        _aiai->setDragable(0);
+        _aiai->setPosition(Vec2(800, 500));
+        _aiai->setVisible(false); // 初始设置为不可见
+
+        _AiMiniHero[index] = _aiai;
+        _aiHeroCreated[index] = true;
     }
 }
