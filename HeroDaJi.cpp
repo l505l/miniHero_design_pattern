@@ -52,8 +52,8 @@ bool HeroDaJi::init(Ecamp camp, Ref* scene)
     auto healthBar = HealthBar::create(mageHpLim, 0, camp);
     auto energyBar = EnergyBar::create(energyLim, mageEnergyRecoverRate, camp);
     
-    this->addStateBar(healthBar);//Bridge Pattern: 将血条添加到英雄对象中
-    this->addStateBar(energyBar);//Bridge Pattern: 将能量条添加到英雄对象中
+    this->addStateBar(healthBar);
+    this->addStateBar(energyBar);
 
     this->addChild(this->getHpBar());
     this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
@@ -151,20 +151,7 @@ void HeroDaJi::initWalkingAnimation(Vec2 destination) {
     this->runAction(move);
 
 }
-//void HeroDaJi::decideToAttack() {
-    //std::function<void(float)> decisionCallback = [this](float) {
-    //    // ǾǷִ ATTACK ߼
-    //    // 磬ԸϷ״̬Ի
-    //    if (this&&_attackTarget&& this->getPosition().distance((_attackTarget)->getPosition()) < attackScope)
-    //    {
-    //        this->unschedule("check_condition_key");
-    //        this->stopAllActions();
-    //        this->_isMoving = false;
-    //        performAttack();
-    //    }
-    //};
-    //this->schedule(decisionCallback, 0.001f, "check_condition_key");
-//}
+
 void HeroDaJi::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
     //animAttackFrames.pushBack(SpriteFrame::create("DaJiAttackright1.png", Rect(0, 0, 400, 400))); // ֡
@@ -263,8 +250,8 @@ CallFunc* HeroDaJi::fireArrow() {
 }
 void HeroDaJi::upGrade()
 {
-    this->removeChild(this->getHpBar(), true);
-    this->removeChild(this->getEnergyBar(), true);
+    this->removeStateBar("health");
+    this->removeStateBar("energy");
 
     this->setHpLim(getHpLim() * 2);
     this->setEnergyLim(getEnergyLim() / 2);
@@ -277,8 +264,12 @@ void HeroDaJi::upGrade()
     this->setAttackScope(getAttackScope() * 1.2f);
     this->setAttackPower(getAttackPower() * 2);
     this->setSkillPower(getSkillPower() * 2);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0, getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate() * 2, getCamp()));
+    auto newHealthBar = HealthBar::create(this->getHpLim(), 0, getCamp());
+    auto newEnergyBar = EnergyBar::create(this->getEnergyLim(), 
+        getEnergyRecoverRate() * 2, getCamp());
+    
+    this->addStateBar(newHealthBar);
+    this->addStateBar(newEnergyBar);
 
     this->addChild(this->getHpBar());
     this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));

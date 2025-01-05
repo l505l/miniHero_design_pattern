@@ -3,6 +3,16 @@
 #include<string>
 #include "SimpleAudioEngine.h"
 
+// Bridge Pattern: HeroHouYi 类作为抽象部分的具体实现
+// 通过组合方式使用 StateBar（实现部分）来管理英雄状态
+class HeroHouYi : public Hero {
+public:
+    static HeroHouYi* create(Ecamp camp, Ref* scene);
+    virtual bool init(Ecamp camp, Ref* scene) override;
+    // ... 其他方法声明 ...
+};
+
+// Bridge Pattern: 工厂方法创建具体的英雄实例
 HeroHouYi* HeroHouYi::create(Ecamp camp, Ref* scene)
 {
     HeroHouYi* houyi = new (std::nothrow) HeroHouYi;
@@ -140,20 +150,7 @@ void HeroHouYi::initWalkingAnimation(Vec2 destination) {
     this->runAction(move);
 
 }
-//void HeroHouYi::decideToAttack() {
-    //std::function<void(float)> decisionCallback = [this](float) {
-    //    // ǾǷִ ATTACK ߼
-    //    // 磬ԸϷ״̬Ի
-    //    if (this&&_attackTarget&& this->getPosition().distance((_attackTarget)->getPosition()) < attackScope)
-    //    {
-    //        this->unschedule("check_condition_key");
-    //        this->stopAllActions();
-    //        this->_isMoving = false;
-    //        performAttack();
-    //    }
-    //};
-    //this->schedule(decisionCallback, 0.001f, "check_condition_key");
-//}
+
 
 void HeroHouYi::performAttack() {
     Vector<SpriteFrame*> animAttackFrames;
@@ -172,9 +169,11 @@ void HeroHouYi::performAttack() {
     auto repeatAttackAndFire = RepeatForever::create(attackSequence);
     this->runAction(repeatAttackAndFire);
 
+    // Bridge Pattern: 使用状态检查来控制攻击行为
     std::function<void(float)> stop = [this, repeatAttackAndFire](float) {
         this->updateAttackTarget();
-        if (this && _attackTarget && !(this->getPosition().distance((_attackTarget)->getPosition()) < attackScope))
+        if (this && _attackTarget && 
+            !(this->getPosition().distance((_attackTarget)->getPosition()) < attackScope))
         {
             this->unschedule("stop");
             this->stopAction(repeatAttackAndFire);
@@ -184,82 +183,83 @@ void HeroHouYi::performAttack() {
     this->schedule(stop, 0.001f, "stop");
 }
 
+// Bridge Pattern: 通过状态栏实现来处理技能效果
 CallFunc* HeroHouYi::fireArrow() {
-    auto fireArrow = CallFunc::create([this]()
-        {
-            std::string path;
-            INT32 size = 0;
-            INT32 damageDelta = 0;
-            if (this->getEnergyBar() && (this->getEnergyBar()->getPercent() == 100))
-            {
+    auto fireArrow = CallFunc::create([this]() {
+        std::string path;
+        INT32 size = 0;
+        INT32 damageDelta = 0;
+        
+        // Bridge Pattern: 使用状态栏接口检查能量状态
+        // 展示了实现部分（StateBar）如何影响抽象部分（Hero）的行为
+        if (auto energyBar = this->getStateBar("energy")) {
+            if (energyBar->getPercent() == 100) {
+                // 技能状态
                 path = "HouYiSkill3Logo.png";
                 size = 8;
-                this->getEnergyBar()->setCurrentState(1);
+                energyBar->setCurrentState(1);  // 重置能量值
                 damageDelta = this->getSkillPower();
-            }
-            else
-            {
+            } else {
+                // 普通攻击状态
                 path = "HouYiNormal.png";
                 size = 20;
                 damageDelta = this->getAttackPower();
             }
-            
-          
+        }
 
-            auto arrowSprite = Sprite::create(path); // ʸ
-            arrowSprite->setPosition(this->getPosition()); // ʸĳʼλ
+        // ... 箭矢创建和发射逻辑 ...
 
-            auto spriteSize = this->getContentSize();
-            arrowSprite->setScale(spriteSize.width / (size * arrowSprite->getContentSize().width),
-                spriteSize.height / (size * arrowSprite->getContentSize().height));
-            if (_attackTarget == nullptr)
+        // Bridge Pattern: 通过状态栏接口处理伤害效果
+        auto arrowSprite = Sprite::create(path); // ʸ
+        arrowSprite->setPosition(this->getPosition()); // ʸĳʼλ
+
+        auto spriteSize = this->getContentSize();
+        arrowSprite->setScale(spriteSize.width / (size * arrowSprite->getContentSize().width),
+            spriteSize.height / (size * arrowSprite->getContentSize().height));
+        if (_attackTarget == nullptr)
+        {
+
+            return nullptr;
+        }
+        auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // ʸƶĿλ
+        auto removeArrow = CallFunc::create([arrowSprite, this, damageDelta]() {
+            if (arrowSprite && _attackTarget && 
+                arrowSprite->getBoundingBox().intersectsRect((_attackTarget->getBoundingBox()))) 
             {
-
-                return nullptr;
-            }
-            auto moveArrow = MoveTo::create(0.5f, _attackTarget->getPosition()); // ʸƶĿλ
-            auto removeArrow = CallFunc::create([arrowSprite, this, damageDelta]() {
-                //arrowSprite->removeFromParent(); // ɺƳʸ
-                if (arrowSprite && _attackTarget && arrowSprite->getBoundingBox().intersectsRect((_attackTarget->getBoundingBox()))) {
-                    arrowSprite->removeFromParent(); // Ƴʸ
-                    //arrowSprite = nullptr; // ռʸ
-                    _attackTarget->getHpBar()->changeStateBy(-damageDelta);
-                    if (getCamp() == BLUE)
-                    {
-                        int a = 0;
-                    }
-                    if (_attackTarget->getHpBar()->getCurrentState() <= 0)
-                    {
-                        _attackTarget->setIsDead(true);
-                        _attackTarget->setVisible(false);
-                        _attackTarget->stopAllActions();
-                        //arrowSprite->stopAllActions();
-                        //_attackTarget->mySprite->removeFromParent();
-                        this->stopAllActions();
-                        this->unschedule("arrow_collision_check");
-
-                        upDateMoving();
-                    }
+                arrowSprite->removeFromParent();
+                // Bridge Pattern: 通过状态栏接口更新目标生命值
+                _attackTarget->getStateBar("health")->changeStateBy(-damageDelta);
+                
+                // 检查目标状态并处理死亡逻辑
+                if (_attackTarget->getStateBar("health")->getCurrentState() <= 0)
+                {
+                    _attackTarget->setIsDead(true);
+                    _attackTarget->setVisible(false);
+                    _attackTarget->stopAllActions();
+                    this->stopAllActions();
+                    this->unschedule("arrow_collision_check");
+                    upDateMoving();
                 }
-                else
-                    arrowSprite->removeFromParent();
-                });
-            auto arrowSequence = Sequence::create(moveArrow, removeArrow, nullptr);
-            if (this->isVisible())
-            {
-                arrowSprite->runAction(arrowSequence); // ִмʸ
-                dynamic_cast<HelloWorld*>(this->getPresentScene())->addChild(arrowSprite);
             }
-            //checkArrowCollision(arrowSprite);
-
+            else
+                arrowSprite->removeFromParent();
         });
+        auto arrowSequence = Sequence::create(moveArrow, removeArrow, nullptr);
+        if (this->isVisible())
+        {
+            arrowSprite->runAction(arrowSequence); // ִмʸ
+            dynamic_cast<HelloWorld*>(this->getPresentScene())->addChild(arrowSprite);
+        }
+        //checkArrowCollision(arrowSprite);
+
+    });
     return fireArrow;
 }
 
 void HeroHouYi::upGrade()
 {
-    this->removeChild(this->getHpBar(), true);
-    this->removeChild(this->getEnergyBar(), true);
+    this->removeStateBar("health");
+    this->removeStateBar("energy");
 
     this->setHpLim(getHpLim() * 2);
     this->setEnergyLim(getEnergyLim() / 2);
@@ -272,12 +272,11 @@ void HeroHouYi::upGrade()
     this->setAttackScope(getAttackScope() * 1.2f);
     this->setAttackPower(getAttackPower() * 2);
     this->setSkillPower(getSkillPower() * 2);
-    this->setHpBar(HP::create(HEALTH, this->getHpLim(), 0, getCamp()));
-    this->setEnergyBar(HP::create(ENERGY, this->getEnergyLim(), getEnergyRecoverRate() * 2, getCamp()));
 
-    this->addChild(this->getHpBar());
-    this->getHpBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height + 0));
-
-    this->addChild(this->getEnergyBar());
-    this->getEnergyBar()->setPosition(Vec2(this->getContentSize().width / 2, this->getContentSize().height - 10));
+    auto newHealthBar = HealthBar::create(this->getHpLim(), 0, getCamp());
+    auto newEnergyBar = EnergyBar::create(this->getEnergyLim(), 
+        getEnergyRecoverRate() * 2, getCamp());
+    
+    this->addStateBar(newHealthBar);
+    this->addStateBar(newEnergyBar);
 }
